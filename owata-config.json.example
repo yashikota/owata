@@ -1,0 +1,5 @@
+{
+  "webhook_url": "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN",
+  "username": "Owata",
+  "avatar_url": "https://example.com/avatar.png"
+}
