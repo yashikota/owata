@@ -1,16 +1,26 @@
-# Owata - Discord Notification Tool
+# Owata - Discord Notification CLI Tool
 
-🔔 A cross-platform Go tool for sending Discord notifications. Perfect for LLMs like Claude Code or Gemini CLI to send completion notifications.  
+🔔 A simple tool for sending Discord webhook notifications from the command line. Perfect for coding agents like Claude Code and Gemini CLI to send completion notifications. Works cross-platform.
 
-## Features
+## ✨ Features
 
-- 🖥️ **Cross-platform**: Works on Windows, macOS, and Linux
-- 📨 **Discord webhooks**: Sends rich embed notifications
-- ⚙️ **Configurable**: JSON config file or command-line arguments
-- 🚀 **Zero dependencies**: Uses only Go standard library
-- 🤖 **LLM-friendly**: Simple command-line interface for automated notifications
+- 🖥️ **Cross-platform** - Works on Windows, macOS, and Linux
+- 📨 **Rich notifications** - Sends beautiful notifications in Discord embed format
+- ⚙️ **Flexible configuration** - Configure via config file or command-line arguments
+- 🤖 **AI/LLM friendly** - Simple interface suitable for automation
+- 🚀 **Easy setup** - Get started instantly with `owata init`
 
-## Installation
+## 📦 Installation
+
+### Using Go install
+
+```bash
+go install github.com/yashikota/owata@latest
+```
+
+### Download binary
+
+Download the latest release from the [releases page](https://github.com/yashikota/owata/releases)
 
 ### Build from source
 
@@ -20,99 +30,166 @@ cd owata
 go build -o owata
 ```
 
-### Download binary
+## 🚀 Quick Start
 
-Download the latest release from the [releases page](https://github.com/yashikota/owata/releases).
-
-## Usage
-
-### Basic usage
+### 1. Create config file
 
 ```bash
-# Send notification with webhook URL
-owata "Claude Code session completed" https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN
-
-# Send notification about task completion
-owata "Task finished successfully" https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN
-
-# Send notification with source specification
-owata "Task completed successfully" --source="Claude Code"
+owata init
 ```
 
-### Usage in AI/LLM tools
-
-AI tools and LLM agents can use the CLI directly by executing the command:
+### 2. Set Discord Webhook URL
 
 ```bash
-# From any programming language
-exec("owata 'AI task completed' --source='Claude Code'");
+owata config --webhook="https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
 ```
 
-### Using config file
-
-1. Copy the example config file:
-   ```bash
-   cp owata-config.json.example owata-config.json
-   ```
-
-2. Edit `owata-config.json` with your settings:
-   ```json
-   {
-     "webhook_url": "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN",
-     "username": "Owata",
-     "avatar_url": "https://example.com/avatar.png"
-   }
-   ```
-
-3. Send notifications:
-   ```bash
-   owata "Your message here"
-   ```
-
-## Configuration
-
-### Config file options
-
-- `webhook_url`: Discord webhook URL (required)
-- `username`: Custom username for the bot (optional, default: "Owata Monitor")
-- `avatar_url`: Custom avatar URL for the bot (optional)
-
-### Command line
+### 3. Send notification
 
 ```bash
-owata <message> [webhook-url] [--source=<source>]
+owata "Task completed!"
 ```
 
-- `message`: The message to send (required)
-- `webhook-url`: Discord webhook URL (optional if using config file)
-- `--source`: Specify the source of the notification (e.g., "Claude Code", "Gemini", etc.)
+## 📖 Usage
 
-## Discord Webhook Setup
-
-1. Go to your Discord server settings
-2. Navigate to Integrations → Webhooks
-3. Click "New Webhook"
-4. Choose a channel and copy the webhook URL
-5. Use this URL in your config file or command line
-
-## Examples
+### Basic commands
 
 ```bash
-owata "Tasks Done" --source="Claude Code"
+# Send notification (simplest form if configured)
+owata "Dependency update completed"
+
+# Specify webhook URL directly
+owata "Task completed" --webhook="https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
+
+# Specify source
+owata "Code review completed" --source="Claude Code"
+
+# Specify multiple options
+owata "CI completed" --webhook="https://discord.com/api/webhooks/..." --source="GitHub Actions"
 ```
+
+### Configuration commands
 
 ```bash
-owata "Tasks Done" --source="Gemini CLI"
+# Create config file template
+owata init
+
+# Show current configuration
+owata config
+
+# Set webhook URL
+owata config --webhook="https://discord.com/api/webhooks/..."
+
+# Set bot name
+owata config --username="MyBot"
+
+# Set avatar image
+owata config --avatar="https://example.com/avatar.png"
+
+# Update multiple settings at once
+owata config --username="ProjectBot" --avatar="https://example.com/avatar.png"
 ```
+
+### Other commands
 
 ```bash
-owata "Custom Message" --source="任意のソース"
+owata --help        # Show help
+owata --version     # Show version information
 ```
 
-## Notification Format
+## ⚙️ Configuration
 
-Owata sends a Discord embed with:
-- Message text
-- Working directory
-- Source (if specified)
-- Timestamp
+### Config file (`owata-config.json`)
+
+```json
+{
+  "webhook_url": "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN",
+  "username": "Owata",
+  "avatar_url": "https://example.com/avatar.png"
+}
+```
+
+| Field | Description | Required |
+|-------|-------------|----------|
+| `webhook_url` | Discord Webhook URL | ✅ |
+| `username` | Bot display name (default: "Owata") | ❌ |
+| `avatar_url` | Bot avatar image URL | ❌ |
+
+### Command-line options
+
+| Command | Description |
+|---------|-------------|
+| `owata <message>` | Send notification (basic command) |
+| `owata init` | Create config file template |
+| `owata config` | Show current configuration |
+| `owata config --webhook=<url>` | Set webhook URL |
+| `owata config --username=<name>` | Set bot name |
+| `owata config --avatar=<url>` | Set avatar URL |
+| `owata --help` | Show help |
+| `owata --version` | Show version information |
+
+| Option | Description |
+|--------|-------------|
+| `<message>` | Message to send (required) |
+| `--webhook=<url>` | Discord Webhook URL (overrides config) |
+| `--source=<source>` | Notification source (e.g., "Claude Code", "GitHub Actions") |
+
+## 🔗 Discord Webhook Setup
+
+1. Open your Discord server settings
+2. Navigate to **Integrations** → **Webhooks**
+3. Click **New Webhook**
+4. Select destination channel
+5. **Copy the Webhook URL** and use it
+
+📚 Details: [Discord Webhook Official Guide](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks)
+
+## 💡 Practical Examples
+
+### AI Development Agents
+
+```bash
+# Claude Code session completion
+owata "Claude Code refactoring completed" --source="Claude Code"
+
+# GitHub Copilot Chat usage (direct webhook URL)
+owata "Copilot Chat code review completed" --webhook="https://discord.com/api/webhooks/..." --source="GitHub Copilot"
+
+# Cursor IDE task completion
+owata "Cursor feature implementation completed" --source="Cursor"
+```
+
+### CI/CD & Automation
+
+```bash
+# GitHub Actions (using config file)
+owata "Deploy completed successfully" --source="GitHub Actions"
+
+# Docker build completion (direct webhook URL)
+owata "Docker image build completed" --webhook="https://discord.com/api/webhooks/..." --source="Docker"
+
+# Test execution completion
+owata "All tests passed successfully" --source="Jest"
+```
+
+### Development Workflow
+
+```bash
+# Long build completion
+owata "Production deployment completed" --source="Production Deploy"
+
+# Database migration
+owata "Database migration completed" --source="DB Migration"
+
+# Performance testing
+owata "Load testing completed. Please check results" --source="Load Test"
+```
+
+## 📋 Notification Format
+
+Discord notifications sent by Owata include the following information:
+
+- 📝 **Message** - The specified text
+- 📁 **Working Directory** - Directory path where command was executed
+- 🏷️ **Source** - Source specified with `--source` (optional)
+- ⏰ **Timestamp** - Notification send time
