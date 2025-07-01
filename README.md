@@ -2,6 +2,8 @@
 
 🔔 A simple tool for sending Discord webhook notifications from the command line. Perfect for coding agents like Claude Code and Gemini CLI to send completion notifications. Works cross-platform.
 
+![example](example.png)
+
 ## ✨ Features
 
 - 🖥️ **Cross-platform** - Works on Windows, macOS, and Linux

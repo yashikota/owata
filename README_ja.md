@@ -2,6 +2,8 @@
 
 🔔 CLIからDiscordのWebhookを送信するシンプルなツールです。Claude CodeやGemini CLIなどのコーディングエージェントが完了通知を送信するのに最適で、クロスプラットフォームで動作します。
 
+![example](example.png)
+
 ## ✨ 特徴
 
 - 🖥️ **クロスプラットフォーム** - Windows、macOS、Linuxで動作
