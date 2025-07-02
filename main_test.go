@@ -329,8 +329,9 @@ func TestHandleNotify(t *testing.T) {
 
 			// Clean any existing config files
 			os.Remove(config.ConfigFileName) // local
-			homeDir, _ := os.UserHomeDir()
-			os.Remove(filepath.Join(homeDir, ".config", config.ConfigFileName)) // global
+			tempDir := t.TempDir()
+			t.Setenv("HOME", tempDir)
+			os.Remove(filepath.Join(tempDir, ".config", config.ConfigFileName)) // global
 
 			// Setup local config if needed
 			if tt.setupLocal {
