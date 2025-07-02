@@ -204,11 +204,13 @@ func (m *Manager) DisplayConfig(path string) (string, error) {
 	return output, nil
 }
 
-func fileExists(path string) bool {
+func fileExists(path string) (bool, error) {
 	info, err := os.Stat(path)
 	if err != nil {
-		// Any error from Stat (e.g., not found, permission denied) means we can't treat it as an existing file.
-		return false
+		if os.IsNotExist(err) {
+			return false, nil // File does not exist
+		}
+		return false, err // Propagate other errors
 	}
-	return !info.IsDir() // Make sure it's not a directory
+	return !info.IsDir(), nil // Make sure it's not a directory
 }
