@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/yashikota/owata/cli"
 	"github.com/yashikota/owata/config"
@@ -51,7 +50,6 @@ func main() {
 	}
 }
 
-// handleInit handles the init command
 func handleInit(cm *config.Manager, global bool) error {
 	path, created, err := cm.CreateTemplate(global)
 	if err != nil {
@@ -80,7 +78,6 @@ func handleInit(cm *config.Manager, global bool) error {
 	return nil
 }
 
-// handleConfig handles the config command
 func handleConfig(cm *config.Manager, args *cli.Args) error {
 	// If no parameters were provided, show current configuration
 	if args.WebhookURL == "" && args.Username == "" && args.AvatarURL == "" {
@@ -156,47 +153,26 @@ func handleConfig(cm *config.Manager, args *cli.Args) error {
 	return nil
 }
 
-// handleNotify handles sending a notification
 func handleNotify(cm *config.Manager, args *cli.Args) error {
 	var webhookURL string
 	var configToUse *config.Config
-	var useGlobal bool
+	preferGlobal := args.Global
 
-	// Determine which config to use, respecting user preference but falling back if needed
-	preferGlobal := args.Global // true if -g flag was provided
-
-	// First, try to load config based on user preference
-	cfg, configPath, err := cm.Load(preferGlobal)
+	cfg, _, err := cm.Load(preferGlobal)
 	if err == nil {
 		configToUse = cfg
-		useGlobal = strings.Contains(configPath, ".config") // Simple check if it's the global path
-
-		// If we have a webhook URL in the config, use it (unless command line overrides it)
 		if configToUse.WebhookURL != "" && args.WebhookURL == "" {
 			webhookURL = configToUse.WebhookURL
 		}
 	}
 
-	// If no webhook URL yet and not explicitly requesting global, try the other config as fallback
-	if webhookURL == "" && !preferGlobal && err != nil {
-		// Try global config as fallback
-		fallbackCfg, _, fallbackErr := cm.Load(true)
-		if fallbackErr == nil && fallbackCfg.WebhookURL != "" {
-			configToUse = fallbackCfg
-			useGlobal = true
-			webhookURL = fallbackCfg.WebhookURL
-		}
-	}
-
-	// Command line webhook URL overrides config
 	if args.WebhookURL != "" {
 		webhookURL = args.WebhookURL
 	}
 
-	// If still no webhook URL, return an error
 	if webhookURL == "" {
 		configType := "local"
-		if useGlobal {
+		if args.Global {
 			configType = "global"
 		}
 		return fmt.Errorf("no webhook URL provided in command line or %s config", configType)

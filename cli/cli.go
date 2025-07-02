@@ -7,7 +7,6 @@ import (
 
 const Version = "2.0.0"
 
-// Command represents the CLI command to execute
 type CommandType int
 
 const (
@@ -18,7 +17,6 @@ const (
 	CommandShowVersion
 )
 
-// Args holds the parsed command line arguments
 type Args struct {
 	Command    CommandType
 	Message    string
@@ -29,14 +27,11 @@ type Args struct {
 	Global     bool
 }
 
-// Parse parses command line arguments
 func Parse(args []string) (*Args, error) {
-	// Check for missing arguments
 	if len(args) < 1 {
 		return nil, fmt.Errorf("missing arguments")
 	}
 
-	// Check for help or version flags first (even if no other args)
 	for _, arg := range args {
 		if arg == "--help" || arg == "-h" {
 			return &Args{Command: CommandShowHelp}, nil
@@ -46,12 +41,9 @@ func Parse(args []string) (*Args, error) {
 		}
 	}
 
-	// Extract global flag if present at the beginning of arguments
-	// This allows commands like "owata -g init" or "owata --global config"
 	var globalFlag bool
 	var processedArgs []string
 
-	// Process args to extract global flag at any position before the command
 	for i := range args {
 		if args[i] == "-g" || args[i] == "--global" {
 			globalFlag = true
@@ -60,15 +52,10 @@ func Parse(args []string) (*Args, error) {
 		}
 	}
 
-	// If no args left after global flag extraction, treat as notification command
 	if len(processedArgs) == 0 {
-		return &Args{
-			Command: CommandNotify,
-			Global:  globalFlag,
-		}, fmt.Errorf("missing required message argument")
+		return nil, fmt.Errorf("missing command; please specify 'init', 'config', or a notification message")
 	}
 
-	// Check for explicit commands
 	if processedArgs[0] == "init" {
 		return &Args{Command: CommandInit, Global: globalFlag}, nil
 	}
@@ -82,7 +69,6 @@ func Parse(args []string) (*Args, error) {
 		return result, err
 	}
 
-	// Default is notification command
 	result, err := parseNotifyArgs(processedArgs)
 	if err == nil && result != nil {
 		// Merge global flag from initial parsing
@@ -91,7 +77,6 @@ func Parse(args []string) (*Args, error) {
 	return result, err
 }
 
-// parseNotifyArgs parses arguments for the notify command
 func parseNotifyArgs(args []string) (*Args, error) {
 	if len(args) < 1 {
 		return nil, fmt.Errorf("missing required message argument")
@@ -102,25 +87,20 @@ func parseNotifyArgs(args []string) (*Args, error) {
 		Source:  "Unknown", // Default source
 	}
 
-	// First pass: process all flags and find the message
 	var messageArgs []string
 	var messageFound bool
 
 	for i := range args {
 		arg := args[i]
 
-		// Process known flags
 		if after, ok := strings.CutPrefix(arg, "--source="); ok {
 			result.Source = strings.Trim(after, "'\"")
 		} else if after, ok := strings.CutPrefix(arg, "--webhook="); ok {
 			result.WebhookURL = strings.Trim(after, "'\"")
-		} else if arg == "-g" || arg == "--global" {
-			result.Global = true
 		} else if strings.HasPrefix(arg, "-") {
 			// Unknown flag
 			return nil, fmt.Errorf("unknown option for notify command: %s", arg)
 		} else {
-			// This must be the message
 			messageArgs = append(messageArgs, arg)
 			messageFound = true
 		}
@@ -130,24 +110,20 @@ func parseNotifyArgs(args []string) (*Args, error) {
 		return nil, fmt.Errorf("missing required message argument")
 	}
 
-	// Join all non-flag arguments as the message
 	result.Message = strings.Join(messageArgs, " ")
 
 	return result, nil
 }
 
-// parseConfigArgs parses arguments for the config command
 func parseConfigArgs(args []string) (*Args, error) {
 	result := &Args{
 		Command: CommandConfig,
 	}
 
-	// No parameters means show current config
 	if len(args) == 0 {
 		return result, nil
 	}
 
-	// Parse config arguments
 	for i := range args {
 		arg := args[i]
 
@@ -167,7 +143,6 @@ func parseConfigArgs(args []string) (*Args, error) {
 	return result, nil
 }
 
-// PrintUsage prints command line usage information
 func PrintUsage() {
 	fmt.Printf("Owata v%s - Discord Webhook Notifier\n\n", Version)
 	fmt.Println("Usage:")
@@ -209,7 +184,6 @@ func PrintUsage() {
 	fmt.Println("  owata 'Task completed!' -g # Send notification using global config")
 }
 
-// PrintVersion prints version information
 func PrintVersion() {
 	fmt.Printf("Owata v%s\n", Version)
 }
