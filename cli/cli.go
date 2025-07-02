@@ -72,7 +72,7 @@ result.Global = globalFlag
 	result, err := parseNotifyArgs(processedArgs)
 	if err == nil && result != nil {
 		// Merge global flag from initial parsing
-		result.Global = result.Global || globalFlag
+result.Global = globalFlag
 	}
 	return result, err
 }
