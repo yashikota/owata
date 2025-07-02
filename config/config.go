@@ -80,7 +80,7 @@ func (m *Manager) Load(preferGlobal bool) (*Config, string, error) {
 	} else if globalExists {
 		configPath = globalPath
 	} else {
-		return nil, "", fmt.Errorf("config file not found: neither %s nor %s exists", localPath, globalPath)
+		return nil, "", fmt.Errorf("%w: config file not found: neither %s nor %s exists", ErrConfigFileNotFound, localPath, globalPath)
 	}
 
 	config, err := m.LoadFromPath(configPath)
