@@ -64,7 +64,7 @@ func Parse(args []string) (*Args, error) {
 		result, err := parseConfigArgs(processedArgs[1:])
 		if err == nil && result != nil {
 			// Merge global flag from initial parsing
-result.Global = globalFlag
+			result.Global = globalFlag
 		}
 		return result, err
 	}
@@ -72,7 +72,7 @@ result.Global = globalFlag
 	result, err := parseNotifyArgs(processedArgs)
 	if err == nil && result != nil {
 		// Merge global flag from initial parsing
-result.Global = globalFlag
+		result.Global = globalFlag
 	}
 	return result, err
 }
@@ -149,16 +149,16 @@ func PrintUsage() {
 	fmt.Println("  owata config [-g|--global] [--webhook=<url>] [--username=<name>] [--avatar=<url>]")
 	fmt.Println("")
 	fmt.Println("Commands:")
-fmt.Printf("  %-30s Create local configuration template file\n", "init")
-fmt.Printf("  %-30s Create global configuration template file\n", "init -g, --global")
-fmt.Printf("  %-30s Show current local configuration\n", "config")
-fmt.Printf("  %-30s Show current global configuration\n", "config -g, --global")
-fmt.Printf("  %-30s Set Discord webhook URL in local config\n", "config --webhook=<url>")
-fmt.Printf("  %-30s Set Discord webhook URL in global config\n", "config -g --webhook=<url>")
-fmt.Printf("  %-30s Set bot username in local config\n", "config --username=<name>")
-fmt.Printf("  %-30s Set bot username in global config\n", "config -g --username=<name>")
-fmt.Printf("  %-30s Set avatar URL in local config\n", "config --avatar=<url>")
-fmt.Printf("  %-30s Set avatar URL in global config\n", "config -g --avatar=<url>")
+	fmt.Printf("  %-30s Create local configuration template file\n", "init")
+	fmt.Printf("  %-30s Create global configuration template file\n", "init -g, --global")
+	fmt.Printf("  %-30s Show current local configuration\n", "config")
+	fmt.Printf("  %-30s Show current global configuration\n", "config -g, --global")
+	fmt.Printf("  %-30s Set Discord webhook URL in local config\n", "config --webhook=<url>")
+	fmt.Printf("  %-30s Set Discord webhook URL in global config\n", "config -g --webhook=<url>")
+	fmt.Printf("  %-30s Set bot username in local config\n", "config --username=<name>")
+	fmt.Printf("  %-30s Set bot username in global config\n", "config -g --username=<name>")
+	fmt.Printf("  %-30s Set avatar URL in local config\n", "config --avatar=<url>")
+	fmt.Printf("  %-30s Set avatar URL in global config\n", "config -g --avatar=<url>")
 	fmt.Println("")
 	fmt.Println("Arguments:")
 	fmt.Println("  message                    The notification message to send")

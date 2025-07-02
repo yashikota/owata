@@ -157,9 +157,15 @@ func handleNotify(cm *config.Manager, args *cli.Args) error {
 
 	cfg, _, err := cm.Load(preferGlobal)
 	if err != nil {
-		if !errors.Is(err, config.ErrConfigFileNotFound) {
-			return fmt.Errorf("failed to load configuration: %w", err)
+		// If no config files exist but we have a webhook URL from command line,
+		// we can still proceed
+		if args.WebhookURL == "" {
+			// We only care about errors if we need the config file's webhook URL
+			if !errors.Is(err, config.ErrConfigFileNotFound) {
+				return fmt.Errorf("failed to load configuration: %w", err)
+			}
 		}
+		// Otherwise just silently continue with command line args only
 	} else {
 		configToUse = cfg
 		if configToUse.WebhookURL != "" && args.WebhookURL == "" {

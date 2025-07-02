@@ -57,8 +57,15 @@ func (m *Manager) Load(preferGlobal bool) (*Config, string, error) {
 		return nil, "", fmt.Errorf("failed to get global config path: %w", globalPathErr)
 	}
 
-	localExists := fileExists(localPath)
-	globalExists := fileExists(globalPath)
+	localExists, localErr := fileExists(localPath)
+	if localErr != nil {
+		return nil, "", fmt.Errorf("error checking local config: %w", localErr)
+	}
+
+	globalExists, globalErr := fileExists(globalPath)
+	if globalErr != nil {
+		return nil, "", fmt.Errorf("error checking global config: %w", globalErr)
+	}
 
 	var configPath string
 
@@ -85,7 +92,11 @@ func (m *Manager) Load(preferGlobal bool) (*Config, string, error) {
 }
 
 func (m *Manager) LoadFromPath(configPath string) (*Config, error) {
-	if !fileExists(configPath) {
+	exists, err := fileExists(configPath)
+	if err != nil {
+		return nil, fmt.Errorf("error checking config file: %w", err)
+	}
+	if !exists {
 		return nil, fmt.Errorf("%w: %s", ErrConfigFileNotFound, configPath)
 	}
 
@@ -150,7 +161,11 @@ func (m *Manager) CreateTemplate(global bool) (string, bool, error) {
 		}
 	}
 
-	if fileExists(configPath) {
+	exists, err := fileExists(configPath)
+	if err != nil {
+		return "", false, fmt.Errorf("error checking config file: %w", err)
+	}
+	if exists {
 		return configPath, false, nil // File already exists, not created
 	}
 
