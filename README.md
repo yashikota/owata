@@ -42,6 +42,12 @@ owata init
 
 # Or create global config file
 owata init -g
+
+# Set avatar URL in local config
+owata config --avatar="https://github.com/username.png"
+
+# Set avatar URL in global config
+owata config -g --avatar="https://github.com/username.png"
 ```
 
 ### 2. Set Discord Webhook URL
@@ -142,8 +148,8 @@ owata --version     # Show version information
 | `owata config -g, --global` | Show current global configuration |
 | `owata config --webhook=<url>` | Set local webhook URL |
 | `owata config -g --webhook=<url>` | Set global webhook URL |
-| `owata config --username=<n>` | Set bot name in local config |
-| `owata config -g --username=<n>` | Set bot name in global config |
+| `owata config --username=<name>` | Set bot name in local config |
+| `owata config -g --username=<name>` | Set bot name in global config |
 | `owata config --avatar=<url>` | Set avatar URL in local config |
 | `owata config -g --avatar=<url>` | Set avatar URL in global config |
 | `owata --help` | Show help |

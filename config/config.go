@@ -33,16 +33,11 @@ func NewManager() *Manager {
 }
 
 // GetPath returns the path to the config file based on whether global config is requested
+// Note: This function silently falls back to local config if home directory cannot be determined.
+// For error-aware path resolution, use GetPathWithError instead.
 func (m *Manager) GetPath(global bool) string {
-	if global {
-		homeDir, err := os.UserHomeDir()
-		if err != nil {
-			// Fall back to local config if we can't determine home directory
-			return m.configFileName
-		}
-		return filepath.Join(homeDir, ".config", m.configFileName)
-	}
-	return m.configFileName
+	path, _ := m.GetPathWithError(global)
+	return path
 }
 
 // GetPathWithError returns the path to the config file and any error that occurred

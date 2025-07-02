@@ -42,6 +42,12 @@ owata init
 
 # または、グローバル設定ファイルを作成
 owata init -g
+
+# アバターURLをローカル設定に追加
+owata config --avatar="https://github.com/username.png"
+
+# アバターURLをグローバル設定に追加
+owata config -g --avatar="https://github.com/username.png"
 ```
 
 ### 2. Discord Webhook URLを設定

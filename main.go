@@ -84,7 +84,10 @@ func handleInit(cm *config.Manager, global bool) error {
 func handleConfig(cm *config.Manager, args *cli.Args) error {
 	// If no parameters were provided, show current configuration
 	if args.WebhookURL == "" && args.Username == "" && args.AvatarURL == "" {
-		configPath := cm.GetPath(args.Global)
+		configPath, err := cm.GetPathWithError(args.Global)
+		if err != nil {
+			return fmt.Errorf("failed to get config path: %v", err)
+		}
 
 		// Check if the config file exists
 		if _, err := os.Stat(configPath); os.IsNotExist(err) {
@@ -107,7 +110,10 @@ func handleConfig(cm *config.Manager, args *cli.Args) error {
 	}
 
 	// Load existing config or create new one
-	configPath := cm.GetPath(args.Global)
+	configPath, pathErr := cm.GetPathWithError(args.Global)
+	if pathErr != nil {
+		return fmt.Errorf("failed to get config path: %v", pathErr)
+	}
 	cfg, err := cm.LoadFromPath(configPath)
 	if err != nil {
 		// If config doesn't exist, create new one

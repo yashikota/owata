@@ -46,32 +46,49 @@ func Parse(args []string) (*Args, error) {
 		}
 	}
 
-	// Check for explicit commands
-	if args[0] == "init" {
-		result := &Args{Command: CommandInit}
+	// Extract global flag if present at the beginning of arguments
+	// This allows commands like "owata -g init" or "owata --global config"
+	var globalFlag bool
+	var processedArgs []string
 
-		// Check for global flag
-		if len(args) > 1 && (args[1] == "-g" || args[1] == "--global") {
-			result.Global = true
+	// Process args to extract global flag at any position before the command
+	for i := range args {
+		if args[i] == "-g" || args[i] == "--global" {
+			globalFlag = true
+		} else {
+			processedArgs = append(processedArgs, args[i])
 		}
-
-		return result, nil
 	}
 
-	if args[0] == "config" {
-		return parseConfigArgs(args[1:])
+	// If no args left after global flag extraction, treat as notification command
+	if len(processedArgs) == 0 {
+		return &Args{
+			Command: CommandNotify,
+			Global:  globalFlag,
+		}, fmt.Errorf("missing required message argument")
 	}
 
-	// If first argument is a flag, or all arguments are valid notification arguments,
-	// then it's a notification command
-	if args[0] == "-g" || args[0] == "--global" ||
-		strings.HasPrefix(args[0], "--webhook=") ||
-		strings.HasPrefix(args[0], "--source=") {
-		return parseNotifyArgs(args)
+	// Check for explicit commands
+	if processedArgs[0] == "init" {
+		return &Args{Command: CommandInit, Global: globalFlag}, nil
 	}
 
-	// Default is notification command with message as first arg
-	return parseNotifyArgs(args)
+	if processedArgs[0] == "config" {
+		result, err := parseConfigArgs(processedArgs[1:])
+		if err == nil && result != nil {
+			// Merge global flag from initial parsing
+			result.Global = result.Global || globalFlag
+		}
+		return result, err
+	}
+
+	// Default is notification command
+	result, err := parseNotifyArgs(processedArgs)
+	if err == nil && result != nil {
+		// Merge global flag from initial parsing
+		result.Global = result.Global || globalFlag
+	}
+	return result, err
 }
 
 // parseNotifyArgs parses arguments for the notify command
@@ -89,7 +106,7 @@ func parseNotifyArgs(args []string) (*Args, error) {
 	var messageArgs []string
 	var messageFound bool
 
-	for i := 0; i < len(args); i++ {
+	for i := range args {
 		arg := args[i]
 
 		// Process known flags
