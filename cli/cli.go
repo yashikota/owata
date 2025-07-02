@@ -166,7 +166,7 @@ func PrintUsage() {
 	fmt.Println("Options:")
 	fmt.Println("  --webhook=<url>            Discord webhook URL (overrides config)")
 	fmt.Println("  --source=<source>          Set the source of the notification")
-	fmt.Println("  -g, --global               Use global configuration (~/.config/owata-config.json)")
+	fmt.Println("  -g, --global               Use global configuration (in system config directory)")
 	fmt.Println("  --help, -h                 Show this help message")
 	fmt.Println("  --version, -v              Show version information")
 	fmt.Println("")

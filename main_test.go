@@ -107,10 +107,9 @@ func TestGlobalConfig(t *testing.T) {
 	// Create a temp directory for test
 	tempDir := t.TempDir()
 
-	// Setup mock home directory
-	originalHome := os.Getenv("HOME")
-	os.Setenv("HOME", tempDir)
-	defer os.Setenv("HOME", originalHome)
+	// Set test config directory
+	config.SetTestConfigDir(tempDir)
+	defer config.ResetTestConfigDir()
 
 	// Create a config manager
 	manager := config.NewManager()
@@ -121,8 +120,8 @@ func TestGlobalConfig(t *testing.T) {
 		t.Fatalf("Failed to create global config: %v", err)
 	}
 
-	// Check global path
-	expectedPath := filepath.Join(tempDir, ".config", config.ConfigFileName)
+	// Check global path - should be directly in the config dir now
+	expectedPath := filepath.Join(tempDir, config.ConfigFileName)
 	if path != expectedPath {
 		t.Errorf("Expected global path to be %q, got %q", expectedPath, path)
 	}
@@ -327,11 +326,13 @@ func TestHandleNotify(t *testing.T) {
 			// Reset request flag
 			requestReceived = false
 
-			// Clean any existing config files
+			// Clean any existing config files and set up environment
 			os.Remove(config.ConfigFileName) // local
 			tempDir := t.TempDir()
-			t.Setenv("HOME", tempDir)
-			os.Remove(filepath.Join(tempDir, ".config", config.ConfigFileName)) // global
+			config.SetTestConfigDir(tempDir)
+			defer config.ResetTestConfigDir()
+
+			// No need to remove global config file as it's in a fresh temp dir
 
 			// Setup local config if needed
 			if tt.setupLocal {

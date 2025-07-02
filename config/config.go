@@ -34,14 +34,16 @@ func NewManager() *Manager {
 	}
 }
 
+// For testing purposes
+var userConfigDirFunc = os.UserConfigDir
+
 func (m *Manager) GetPathWithError(global bool) (string, error) {
 	if global {
-		homeDir, err := os.UserHomeDir()
+		configDir, err := userConfigDirFunc()
 		if err != nil {
-			return "", fmt.Errorf("could not determine home directory: %w", err)
+			return "", fmt.Errorf("could not determine config directory: %w", err)
 		}
-		// Use the same path structure as before for compatibility
-		return filepath.Join(homeDir, ".config", m.configFileName), nil
+		return filepath.Join(configDir, m.configFileName), nil
 	}
 	return m.configFileName, nil
 }
