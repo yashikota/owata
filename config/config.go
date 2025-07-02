@@ -45,8 +45,13 @@ func (m *Manager) GetPathWithError(global bool) (string, error) {
 }
 
 func (m *Manager) Load(preferGlobal bool) (*Config, string, error) {
-	localPath := m.GetPath(false)
-	globalPath := m.GetPath(true)
+	localPath, _ := m.GetPathWithError(false)
+	globalPath, globalPathErr := m.GetPathWithError(true)
+
+	// If we can't get global path but it was requested, return the error
+	if preferGlobal && globalPathErr != nil {
+		return nil, "", fmt.Errorf("failed to get global config path: %w", globalPathErr)
+	}
 
 	localExists := fileExists(localPath)
 	globalExists := fileExists(globalPath)
@@ -93,7 +98,10 @@ func (m *Manager) LoadFromPath(configPath string) (*Config, error) {
 }
 
 func (m *Manager) Save(config *Config, global bool) (string, error) {
-	configPath := m.GetPath(global)
+	configPath, pathErr := m.GetPathWithError(global)
+	if pathErr != nil {
+		return "", fmt.Errorf("failed to get config path: %w", pathErr)
+	}
 
 	if global {
 		dirPath := filepath.Dir(configPath)
@@ -123,7 +131,10 @@ func (m *Manager) SaveToPath(config *Config, configPath string) error {
 }
 
 func (m *Manager) CreateTemplate(global bool) (string, bool, error) {
-	configPath := m.GetPath(global)
+	configPath, pathErr := m.GetPathWithError(global)
+	if pathErr != nil {
+		return "", false, fmt.Errorf("failed to get config path: %w", pathErr)
+	}
 
 	if global {
 		dirPath := filepath.Dir(configPath)

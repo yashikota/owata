@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	cli "github.com/yashikota/owata/cli"
+	"github.com/yashikota/owata/cli"
 	"github.com/yashikota/owata/config"
 	"github.com/yashikota/owata/discord"
 )
@@ -227,7 +227,7 @@ func TestHandleNotify(t *testing.T) {
 	// Create test cases
 	tests := []struct {
 		name         string
-		args         *github_com_yashikota_owata_cli.Args
+		args         *cli.Args
 		setupLocal   bool
 		setupGlobal  bool
 		expectError  bool
@@ -235,8 +235,8 @@ func TestHandleNotify(t *testing.T) {
 	}{
 		{
 			name: "Command line webhook only",
-			args: &github_com_yashikota_owata_cli.Args{
-				Command:    github_com_yashikota_owata_cli.CommandNotify,
+			args: &cli.Args{
+				Command:    cli.CommandNotify,
 				Message:    "Test message",
 				WebhookURL: server.URL,
 				Source:     "Test",
@@ -248,8 +248,8 @@ func TestHandleNotify(t *testing.T) {
 		},
 		{
 			name: "Local config exists, no global flag",
-			args: &github_com_yashikota_owata_cli.Args{
-				Command: github_com_yashikota_owata_cli.CommandNotify,
+			args: &cli.Args{
+				Command: cli.CommandNotify,
 				Message: "Test message",
 				Source:  "Test",
 				Global:  false,
@@ -260,8 +260,8 @@ func TestHandleNotify(t *testing.T) {
 		},
 		{
 			name: "Global config exists, with global flag",
-			args: &github_com_yashikota_owata_cli.Args{
-				Command: github_com_yashikota_owata_cli.CommandNotify,
+			args: &cli.Args{
+				Command: cli.CommandNotify,
 				Message: "Test message",
 				Source:  "Test",
 				Global:  true,
@@ -273,8 +273,8 @@ func TestHandleNotify(t *testing.T) {
 		},
 		{
 			name: "Both configs exist, with global flag",
-			args: &github_com_yashikota_owata_cli.Args{
-				Command: github_com_yashikota_owata_cli.CommandNotify,
+			args: &cli.Args{
+				Command: cli.CommandNotify,
 				Message: "Test message",
 				Source:  "Test",
 				Global:  true,
@@ -286,8 +286,8 @@ func TestHandleNotify(t *testing.T) {
 		},
 		{
 			name: "Both configs exist, no global flag (prefer local)",
-			args: &github_com_yashikota_owata_cli.Args{
-				Command: github_com_yashikota_owata_cli.CommandNotify,
+			args: &cli.Args{
+				Command: cli.CommandNotify,
 				Message: "Test message",
 				Source:  "Test",
 				Global:  false,
@@ -298,8 +298,8 @@ func TestHandleNotify(t *testing.T) {
 		},
 		{
 			name: "No configs exist, no webhook URL",
-			args: &github_com_yashikota_owata_cli.Args{
-				Command: github_com_yashikota_owata_cli.CommandNotify,
+			args: &cli.Args{
+				Command: cli.CommandNotify,
 				Message: "Test message",
 				Source:  "Test",
 				Global:  false,
@@ -310,8 +310,8 @@ func TestHandleNotify(t *testing.T) {
 		},
 		{
 			name: "Global flag but no global config exists",
-			args: &github_com_yashikota_owata_cli.Args{
-				Command: github_com_yashikota_owata_cli.CommandNotify,
+			args: &cli.Args{
+				Command: cli.CommandNotify,
 				Message: "Test message",
 				Source:  "Test",
 				Global:  true,
@@ -405,7 +405,7 @@ func TestPrintUsage(t *testing.T) {
 	os.Stdout = w
 
 	// Import and use the PrintUsage function from CLI package
-	github_com_yashikota_owata_cli.PrintUsage()
+	cli.PrintUsage()
 
 	// Restore stdout
 	w.Close()
