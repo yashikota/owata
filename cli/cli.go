@@ -157,7 +157,7 @@ func PrintUsage() {
 	fmt.Println("  config -g, --global        Show current global configuration")
 	fmt.Println("  config --webhook=<url>     Set Discord webhook URL in local config")
 	fmt.Println("  config -g --webhook=<url>  Set Discord webhook URL in global config")
-	fmt.Println("  config --username=<name>      Set bot username in local config")
+	fmt.Println("  config --username=<name>   Set bot username in local config")
 	fmt.Println("  config -g --username=<name>   Set bot username in global config")
 	fmt.Println("  config --avatar=<url>      Set avatar URL in local config")
 	fmt.Println("  config -g --avatar=<url>   Set avatar URL in global config")
