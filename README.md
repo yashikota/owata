@@ -37,13 +37,21 @@ go build -o owata
 ### 1. Create config file
 
 ```bash
+# Create local config file
 owata init
+
+# Or create global config file
+owata init -g
 ```
 
 ### 2. Set Discord Webhook URL
 
 ```bash
+# Local configuration
 owata config --webhook="https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
+
+# Or global configuration
+owata config -g --webhook="https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
 ```
 
 ### 3. Send notification
@@ -73,20 +81,23 @@ owata "CI completed" --webhook="https://discord.com/api/webhooks/..." --source="
 ### Configuration commands
 
 ```bash
-# Create config file template
-owata init
-
-# Show current configuration
+# Show current local configuration
 owata config
 
-# Set webhook URL
+# Show global configuration
+owata config -g
+
+# Set local webhook URL
 owata config --webhook="https://discord.com/api/webhooks/..."
 
-# Set bot name
+# Set global webhook URL
+owata config -g --webhook="https://discord.com/api/webhooks/..."
+
+# Set bot name in local config
 owata config --username="MyBot"
 
-# Set avatar image
-owata config --avatar="https://example.com/avatar.png"
+# Set bot name in global config
+owata config -g --username="GlobalBot"
 
 # Update multiple settings at once
 owata config --username="ProjectBot" --avatar="https://example.com/avatar.png"
@@ -101,7 +112,10 @@ owata --version     # Show version information
 
 ## ⚙️ Configuration
 
-### Config file (`owata-config.json`)
+### Config files
+
+- **Local config**: `owata-config.json` (current directory)
+- **Global config**: `~/.config/owata-config.json` (home directory)
 
 ```json
 {
@@ -122,10 +136,13 @@ owata --version     # Show version information
 | Command | Description |
 |---------|-------------|
 | `owata <message>` | Send notification (basic command) |
-| `owata init` | Create config file template |
-| `owata config` | Show current configuration |
-| `owata config --webhook=<url>` | Set webhook URL |
-| `owata config --username=<name>` | Set bot name |
+| `owata init` | Create local config file template |
+| `owata init -g, --global` | Create global config file template |
+| `owata config` | Show current local configuration |
+| `owata config -g, --global` | Show current global configuration |
+| `owata config --webhook=<url>` | Set local webhook URL |
+| `owata config -g --webhook=<url>` | Set global webhook URL |
+| `owata config --username=<n>` | Set bot name |
 | `owata config --avatar=<url>` | Set avatar URL |
 | `owata --help` | Show help |
 | `owata --version` | Show version information |
@@ -135,6 +152,7 @@ owata --version     # Show version information
 | `<message>` | Message to send (required) |
 | `--webhook=<url>` | Discord Webhook URL (overrides config) |
 | `--source=<source>` | Notification source (e.g., "Claude Code", "GitHub Actions") |
+| `-g, --global` | Use global configuration |
 
 ## 🔗 Discord Webhook Setup
 
