@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,6 +11,11 @@ import (
 const (
 	ConfigFileName  = "owata-config.json"
 	DefaultUsername = "Owata"
+)
+
+// Sentinel errors
+var (
+	ErrConfigFileNotFound = errors.New("config file not found")
 )
 
 type Config struct {
@@ -77,7 +83,7 @@ func (m *Manager) Load(preferGlobal bool) (*Config, string, error) {
 
 func (m *Manager) LoadFromPath(configPath string) (*Config, error) {
 	if !fileExists(configPath) {
-		return nil, fmt.Errorf("config file not found: %s", configPath)
+		return nil, fmt.Errorf("%w: %s", ErrConfigFileNotFound, configPath)
 	}
 
 	data, err := os.ReadFile(configPath)
@@ -103,7 +109,7 @@ func (m *Manager) Save(config *Config, global bool) (string, error) {
 	dirPath := filepath.Dir(configPath)
 	if dirPath != "." {
 		if err := os.MkdirAll(dirPath, 0755); err != nil {
-			return configPath, fmt.Errorf("failed to create config directory: %v", err)
+			return "", fmt.Errorf("failed to create config directory: %w", err)
 		}
 	}
 
@@ -137,7 +143,7 @@ func (m *Manager) CreateTemplate(global bool) (string, bool, error) {
 	dirPath := filepath.Dir(configPath)
 	if dirPath != "." {
 		if err := os.MkdirAll(dirPath, 0755); err != nil {
-			return configPath, false, fmt.Errorf("failed to create config directory: %v", err)
+			return "", false, fmt.Errorf("failed to create config directory: %w", err)
 		}
 	}
 

@@ -1,9 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/yashikota/owata/cli"
 	"github.com/yashikota/owata/config"
@@ -114,7 +114,7 @@ func handleConfig(cm *config.Manager, args *cli.Args) error {
 	cfg, err := cm.LoadFromPath(configPath)
 	if err != nil {
 		// Only create a new config if the file doesn't exist
-		if strings.Contains(err.Error(), "config file not found") {
+		if errors.Is(err, config.ErrConfigFileNotFound) {
 			cfg = &config.Config{}
 		} else {
 			// For other errors (permission issues, invalid JSON, etc.), return the error
