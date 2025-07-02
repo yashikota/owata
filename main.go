@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/yashikota/owata/cli"
 	"github.com/yashikota/owata/config"
@@ -115,14 +114,6 @@ func handleConfig(cm *config.Manager, args *cli.Args) error {
 	if err != nil {
 		// If config doesn't exist, create new one
 		cfg = &config.Config{}
-
-		// For global config, ensure directory exists
-		if args.Global {
-			dirPath := filepath.Dir(configPath)
-			if err := os.MkdirAll(dirPath, 0755); err != nil {
-				return fmt.Errorf("failed to create config directory: %v", err)
-			}
-		}
 	}
 
 	// Update config with provided values
