@@ -29,7 +29,7 @@ type Args struct {
 
 func Parse(args []string) (*Args, error) {
 	if len(args) < 1 {
-		return nil, fmt.Errorf("missing arguments")
+		return nil, fmt.Errorf("missing arguments; use --help to see available commands and options")
 	}
 
 	for _, arg := range args {
@@ -53,7 +53,7 @@ func Parse(args []string) (*Args, error) {
 	}
 
 	if len(processedArgs) == 0 {
-		return nil, fmt.Errorf("missing command; please specify 'init', 'config', or a notification message")
+		return nil, fmt.Errorf("missing command; please specify 'init', 'config', or a notification message (use --help for more information)")
 	}
 
 	if processedArgs[0] == "init" {
@@ -79,7 +79,7 @@ func Parse(args []string) (*Args, error) {
 
 func parseNotifyArgs(args []string) (*Args, error) {
 	if len(args) < 1 {
-		return nil, fmt.Errorf("missing required message argument")
+		return nil, fmt.Errorf("missing required message argument (use --help for correct usage)")
 	}
 
 	result := &Args{
@@ -98,8 +98,8 @@ func parseNotifyArgs(args []string) (*Args, error) {
 		} else if after, ok := strings.CutPrefix(arg, "--webhook="); ok {
 			result.WebhookURL = strings.Trim(after, "'\"")
 		} else if strings.HasPrefix(arg, "-") {
-			// Unknown flag
-			return nil, fmt.Errorf("unknown option for notify command: %s", arg)
+			// Unknown flag - return error but suggest using --help
+			return nil, fmt.Errorf("unknown option for notify command: %s (use --help for available options)", arg)
 		} else {
 			messageArgs = append(messageArgs, arg)
 			messageFound = true
@@ -107,7 +107,7 @@ func parseNotifyArgs(args []string) (*Args, error) {
 	}
 
 	if !messageFound {
-		return nil, fmt.Errorf("missing required message argument")
+		return nil, fmt.Errorf("missing required message argument (use --help for correct usage)")
 	}
 
 	result.Message = strings.Join(messageArgs, " ")
@@ -134,7 +134,7 @@ func parseConfigArgs(args []string) (*Args, error) {
 		} else if after, ok := strings.CutPrefix(arg, "--avatar="); ok {
 			result.AvatarURL = strings.Trim(after, "'\"")
 		} else {
-			return nil, fmt.Errorf("unknown config parameter: %s", arg)
+			return nil, fmt.Errorf("unknown config parameter: %s (use --help for available parameters)", arg)
 		}
 	}
 

@@ -37,16 +37,16 @@ go build -o owata
 ### 1. 設定ファイルを作成
 
 ```bash
-# ローカル設定ファイルを作成
+# ローカル設定ファイルを作成（カレントディレクトリ内）
 owata init
 
-# または、グローバル設定ファイルを作成
+# または、グローバル設定ファイルを作成（システム設定ディレクトリ内）
 owata init -g
 
-# アバターURLをローカル設定に追加
+# アバターURLをローカル設定に追加（カレントディレクトリの設定）
 owata config --avatar="https://github.com/username.png"
 
-# アバターURLをグローバル設定に追加
+# アバターURLをグローバル設定に追加（システム全体の設定）
 owata config -g --avatar="https://github.com/username.png"
 ```
 

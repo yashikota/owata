@@ -37,16 +37,16 @@ go build -o owata
 ### 1. Create config file
 
 ```bash
-# Create local config file
+# Create local config file (in current directory)
 owata init
 
-# Or create global config file
+# Or create global config file (in system config directory)
 owata init -g
 
-# Set avatar URL in local config
+# Set avatar URL in local config (current directory config)
 owata config --avatar="https://github.com/username.png"
 
-# Set avatar URL in global config
+# Set avatar URL in global config (system-wide config)
 owata config -g --avatar="https://github.com/username.png"
 ```
 
