@@ -64,6 +64,7 @@ func (m *Manager) Load(preferGlobal bool) (*Config, string, error) {
 		if !globalExists {
 			return nil, "", fmt.Errorf("global config file not found at %s", globalPath)
 		}
+		// Only assign configPath if globalExists is true (we wouldn't reach here otherwise)
 		configPath = globalPath
 	} else if localExists {
 		configPath = localPath
@@ -174,9 +175,12 @@ func (m *Manager) DisplayConfig(path string) (string, error) {
 	output += fmt.Sprintf("\n📋 Current configuration (%s):\n", path)
 
 	if config.WebhookURL != "" {
+		// Safely obfuscate the webhook URL - show only last few characters
 		url := config.WebhookURL
 		if len(url) > 10 {
-			url = "..." + url[len(url)-10:]
+			// Take last 10 characters only
+			lastTen := url[len(url)-10:]
+			url = "..." + lastTen
 		}
 		output += fmt.Sprintf("  🔗 Webhook URL: %s\n", url)
 	} else {
