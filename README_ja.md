@@ -37,13 +37,27 @@ go build -o owata
 ### 1. 設定ファイルを作成
 
 ```bash
+# ローカル設定ファイルを作成（カレントディレクトリ内）
 owata init
+
+# または、グローバル設定ファイルを作成（システム設定ディレクトリ内）
+owata init -g
+
+# アバターURLをローカル設定に追加（カレントディレクトリの設定）
+owata config --avatar="https://github.com/username.png"
+
+# アバターURLをグローバル設定に追加（システム全体の設定）
+owata config -g --avatar="https://github.com/username.png"
 ```
 
 ### 2. Discord Webhook URLを設定
 
 ```bash
+# ローカル設定
 owata config --webhook="https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
+
+# または、グローバル設定
+owata config -g --webhook="https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
 ```
 
 ### 3. 通知を送信
@@ -67,17 +81,23 @@ owata "タスク完了" --webhook="https://discord.com/api/webhooks/YOUR_WEBHOOK
 owata "コードレビューが完了しました" --source="Claude Code"
 
 # 同時に指定も可能
-owata "CI完了" --name="MyBot" --webhook="https://discord.com/api/webhooks/..." --source="GitHub Actions"
+owata "CI完了" --webhook="https://discord.com/api/webhooks/..." --source="GitHub Actions"
 ```
 
 ### 設定コマンド
 
 ```bash
-# 現在の設定を表示
+# 現在の設定を表示（ローカル）
 owata config
 
-# 設定をコマンドラインで行う
+# グローバル設定を表示
+owata config -g
+
+# ローカル設定をコマンドラインで行う
 owata config --webhook="https://discord.com/api/webhooks/..." --username="MyBot" --avatar="https://example.com/avatar.png"
+
+# グローバル設定をコマンドラインで行う
+owata config -g --webhook="https://discord.com/api/webhooks/..." --username="GlobalBot" --avatar="https://example.com/avatar.png"
 ```
 
 ### その他のコマンド
@@ -89,7 +109,10 @@ owata --version     # バージョン情報を表示
 
 ## ⚙️ 設定
 
-### 設定ファイル (`owata-config.json`)
+### 設定ファイル
+
+- **ローカル設定**: `owata-config.json` (カレントディレクトリ)
+- **グローバル設定**: `~/.config/owata-config.json` (ホームディレクトリ)
 
 ```json
 {
@@ -110,11 +133,16 @@ owata --version     # バージョン情報を表示
 | コマンド | 説明 |
 |----------|------|
 | `owata <message>` | 通知を送信（基本コマンド） |
-| `owata init` | 設定ファイルの雛形を作成 |
-| `owata config` | 現在の設定を表示 |
-| `owata config --webhook=<url>` | Webhook URLを設定 |
-| `owata config --username=<name>` | ボット名を設定 |
-| `owata config --avatar=<url>` | アバターURLを設定 |
+| `owata init` | ローカル設定ファイルの雛形を作成 |
+| `owata init -g, --global` | グローバル設定ファイルの雛形を作成 |
+| `owata config` | 現在のローカル設定を表示 |
+| `owata config -g, --global` | 現在のグローバル設定を表示 |
+| `owata config --webhook=<url>` | ローカルWebhook URLを設定 |
+| `owata config -g --webhook=<url>` | グローバルWebhook URLを設定 |
+| `owata config --username=<name>` | ローカルのボット名を設定 |
+| `owata config -g --username=<name>` | グローバルのボット名を設定 |
+| `owata config --avatar=<url>` | ローカルのアバターURLを設定 |
+| `owata config -g --avatar=<url>` | グローバルのアバターURLを設定 |
 | `owata --help` | ヘルプを表示 |
 | `owata --version` | バージョン情報を表示 |
 
@@ -123,6 +151,7 @@ owata --version     # バージョン情報を表示
 | `<message>` | 送信するメッセージ（必須） |
 | `--webhook=<url>` | Discord Webhook URL（設定を上書き） |
 | `--source=<source>` | 通知のソース（例: "Claude Code", "GitHub Actions"） |
+| `-g, --global` | グローバル設定を使用 |
 
 ## 🔗 Discord Webhookの設定
 
