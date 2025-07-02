@@ -28,11 +28,6 @@ func NewManager() *Manager {
 	}
 }
 
-func (m *Manager) GetPath(global bool) string {
-	path, _ := m.GetPathWithError(global)
-	return path
-}
-
 func (m *Manager) GetPathWithError(global bool) (string, error) {
 	if global {
 		homeDir, err := os.UserHomeDir()

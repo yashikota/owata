@@ -127,9 +127,7 @@ func parseConfigArgs(args []string) (*Args, error) {
 	for i := range args {
 		arg := args[i]
 
-		if arg == "-g" || arg == "--global" {
-			result.Global = true
-		} else if after, ok := strings.CutPrefix(arg, "--webhook="); ok {
+		if after, ok := strings.CutPrefix(arg, "--webhook="); ok {
 			result.WebhookURL = strings.Trim(after, "'\"")
 		} else if after, ok := strings.CutPrefix(arg, "--username="); ok {
 			result.Username = strings.Trim(after, "'\"")
@@ -157,8 +155,8 @@ func PrintUsage() {
 	fmt.Println("  config -g, --global        Show current global configuration")
 	fmt.Println("  config --webhook=<url>     Set Discord webhook URL in local config")
 	fmt.Println("  config -g --webhook=<url>  Set Discord webhook URL in global config")
-	fmt.Println("  config --username=<name>   Set bot username in local config")
-	fmt.Println("  config -g --username=<name>   Set bot username in global config")
+	fmt.Println("  config --username=<name>     Set bot username in local config")
+	fmt.Println("  config -g --username=<name>  Set bot username in global config")
 	fmt.Println("  config --avatar=<url>      Set avatar URL in local config")
 	fmt.Println("  config -g --avatar=<url>   Set avatar URL in global config")
 	fmt.Println("")

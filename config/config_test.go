@@ -8,11 +8,14 @@ import (
 	"testing"
 )
 
-func TestGetPath(t *testing.T) {
+func TestGetPathWithError(t *testing.T) {
 	manager := NewManager()
 
 	// Test local config path
-	localPath := manager.GetPath(false)
+	localPath, err := manager.GetPathWithError(false)
+	if err != nil {
+		t.Fatalf("Expected no error for local path, got: %v", err)
+	}
 	if localPath != ConfigFileName {
 		t.Errorf("Expected local path to be %s, got %s", ConfigFileName, localPath)
 	}
@@ -24,7 +27,10 @@ func TestGetPath(t *testing.T) {
 	}
 
 	expectedGlobalPath := filepath.Join(homeDir, ".config", ConfigFileName)
-	globalPath := manager.GetPath(true)
+	globalPath, err := manager.GetPathWithError(true)
+	if err != nil {
+		t.Fatalf("Expected no error for global path, got: %v", err)
+	}
 
 	if globalPath != expectedGlobalPath {
 		t.Errorf("Expected global path to be %s, got %s", expectedGlobalPath, globalPath)

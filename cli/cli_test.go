@@ -135,14 +135,14 @@ func TestParseConfigArgs(t *testing.T) {
 			args: []string{},
 		},
 		{
-			name:           "Global flag short",
-			args:           []string{"-g"},
-			expectedGlobal: true,
+			name:        "Global flag short",
+			args:        []string{"-g"},
+			expectedErr: true,
 		},
 		{
-			name:           "Global flag long",
-			args:           []string{"--global"},
-			expectedGlobal: true,
+			name:        "Global flag long",
+			args:        []string{"--global"},
+			expectedErr: true,
 		},
 		{
 			name:            "Webhook URL",
@@ -161,8 +161,7 @@ func TestParseConfigArgs(t *testing.T) {
 		},
 		{
 			name:            "Multiple arguments",
-			args:            []string{"-g", "--webhook=https://example.com", "--username=TestUser"},
-			expectedGlobal:  true,
+			args:            []string{"--webhook=https://example.com", "--username=TestUser"},
 			expectedWebhook: "https://example.com",
 			expectedUser:    "TestUser",
 		},
