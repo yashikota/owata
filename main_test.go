@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	github_com_yashikota_owata_cli "github.com/yashikota/owata/cli"
+	cli "github.com/yashikota/owata/cli"
 	"github.com/yashikota/owata/config"
 	"github.com/yashikota/owata/discord"
 )
