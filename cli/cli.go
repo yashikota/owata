@@ -64,7 +64,7 @@ func Parse(args []string) (*Args, error) {
 		result, err := parseConfigArgs(processedArgs[1:])
 		if err == nil && result != nil {
 			// Merge global flag from initial parsing
-			result.Global = result.Global || globalFlag
+result.Global = globalFlag
 		}
 		return result, err
 	}
