@@ -71,7 +71,7 @@ func (m *Manager) Load(preferGlobal bool) (*Config, string, error) {
 
 	if preferGlobal {
 		if !globalExists {
-			return nil, "", fmt.Errorf("global config file not found at %s", globalPath)
+			return nil, "", fmt.Errorf("%w: global config file not found at %s", ErrConfigFileNotFound, globalPath)
 		}
 		// Only assign configPath if globalExists is true (we wouldn't reach here otherwise)
 		configPath = globalPath
