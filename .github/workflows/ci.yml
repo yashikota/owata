@@ -2,7 +2,6 @@ name: CI
 
 on:
   push:
-  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -17,7 +16,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: go.mod
+        go-version-file: go.mod
 
     - name: Install dependencies
       run: go mod download
@@ -35,7 +34,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: go.mod
+        go-version-file: go.mod
 
     - name: Format code
       run: go fmt ./...
