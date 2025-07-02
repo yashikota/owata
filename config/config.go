@@ -70,7 +70,11 @@ func (m *Manager) Load(preferGlobal bool) (*Config, string, error) {
 	// Choose which config to load
 	var configPath string
 
-	if preferGlobal && globalExists {
+	// If preferGlobal is true, fail if global config doesn't exist
+	if preferGlobal {
+		if !globalExists {
+			return nil, "", fmt.Errorf("global config file not found at %s", globalPath)
+		}
 		configPath = globalPath
 	} else if localExists {
 		configPath = localPath

@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -128,15 +127,28 @@ func TestCreateTemplate(t *testing.T) {
 	// Create a temporary directory for testing
 	tempDir := t.TempDir()
 
-	// Create a custom config manager with the temp directory
-	manager := &Manager{
-		configFileName: filepath.Join(tempDir, ConfigFileName),
-	}
+	// Save original home directory and set mock HOME
+	originalHome := os.Getenv("HOME")
+	os.Setenv("HOME", tempDir)
+	defer os.Setenv("HOME", originalHome)
 
-	// Create local template
-	localPath, err := manager.CreateTemplate(false)
+	// Save original working directory and change to tempDir
+	currentDir, _ := os.Getwd()
+	os.Chdir(tempDir)
+	defer os.Chdir(currentDir)
+
+	// Create a config manager with standard filename
+	manager := NewManager()
+
+	// Test case 1: Create local template when it doesn't exist
+	localPath, created, err := manager.CreateTemplate(false)
 	if err != nil {
 		t.Fatalf("Failed to create local template: %v", err)
+	}
+
+	// Check that the file was created and the created flag is true
+	if !created {
+		t.Error("Expected created=true for new local template, got false")
 	}
 
 	// Verify file was created
@@ -154,77 +166,74 @@ func TestCreateTemplate(t *testing.T) {
 		t.Errorf("Template config should have empty fields, got %+v", localConfig)
 	}
 
-	// Test global template in a controlled environment
-	globalConfigDir := filepath.Join(tempDir, ".config")
-	if err := os.MkdirAll(globalConfigDir, 0755); err != nil {
-		t.Fatalf("Failed to create mock global config directory: %v", err)
+	// Test case 2: Create local template when it already exists
+	secondLocalPath, created, err := manager.CreateTemplate(false)
+	if err != nil {
+		t.Fatalf("Failed on second local template creation: %v", err)
 	}
 
-	globalPath := filepath.Join(globalConfigDir, ConfigFileName)
+	// Check that no new file was created and created flag is false
+	if created {
+		t.Error("Expected created=false for existing template, got true")
+	}
+	if secondLocalPath != localPath {
+		t.Errorf("Expected same path on second call, got %s vs %s", secondLocalPath, localPath)
+	}
 
-	// Create a JSON template manually
-	templateContent := `{
-  "webhook_url": "",
-  "username": "",
-  "avatar_url": ""
-}`
+	// Test case 3: Create global template
+	globalPath, created, err := manager.CreateTemplate(true)
+	if err != nil {
+		t.Fatalf("Failed to create global template: %v", err)
+	}
 
-	if err := os.WriteFile(globalPath, []byte(templateContent), 0644); err != nil {
-		t.Fatalf("Failed to write global config template: %v", err)
+	// Check that the file was created and the created flag is true
+	if !created {
+		t.Error("Expected created=true for new global template, got false")
+	}
+
+	// Expected global path
+	expectedGlobalPath := filepath.Join(tempDir, ".config", "owata-config.json")
+	if globalPath != expectedGlobalPath {
+		t.Errorf("Expected global path %s, got %s", expectedGlobalPath, globalPath)
 	}
 
 	// Verify file was created
 	if _, err := os.Stat(globalPath); os.IsNotExist(err) {
 		t.Errorf("Global config template was not created at %s", globalPath)
 	}
+
+	// Check global template content
+	globalConfig, err := manager.LoadFromPath(globalPath)
+	if err != nil {
+		t.Fatalf("Failed to load global config template: %v", err)
+	}
+
+	if globalConfig.WebhookURL != "" || globalConfig.Username != "" || globalConfig.AvatarURL != "" {
+		t.Errorf("Global template config should have empty fields, got %+v", globalConfig)
+	}
 }
 
 func TestLoad(t *testing.T) {
 	// Create a temporary directory for testing
 	tempDir := t.TempDir()
-	localConfigPath := filepath.Join(tempDir, "local-config.json")
+
+	// Save original home directory and set mock HOME
+	originalHome := os.Getenv("HOME")
+	os.Setenv("HOME", tempDir)
+	defer os.Setenv("HOME", originalHome)
+
+	// Save original working directory and change to tempDir
+	currentDir, _ := os.Getwd()
+	os.Chdir(tempDir)
+	defer os.Chdir(currentDir)
+
+	// Set up a test config manager with standard filename
+	testManager := NewManager()
+
+	// Define paths for local and global configs
+	localConfigPath := ConfigFileName // In current dir (tempDir)
 	globalConfigDir := filepath.Join(tempDir, ".config")
-	globalConfigPath := filepath.Join(globalConfigDir, "global-config.json")
-
-	// Create a custom manager for testing
-	customManager := NewManager()
-
-	// Create a testing helper that uses our test paths
-	testLoad := func(preferGlobal bool) (*Config, string, error) {
-		var configPath string
-
-		// Logic from the original Load function
-		localExists := false
-		globalExists := false
-
-		// Check existence
-		if _, err := os.Stat(localConfigPath); err == nil {
-			localExists = true
-		}
-
-		if _, err := os.Stat(globalConfigPath); err == nil {
-			globalExists = true
-		}
-
-		// Choose which config to load
-		if preferGlobal && globalExists {
-			configPath = globalConfigPath
-		} else if localExists {
-			configPath = localConfigPath
-		} else if globalExists {
-			configPath = globalConfigPath
-		} else {
-			return nil, "", fmt.Errorf("config file not found: neither %s nor %s exists", localConfigPath, globalConfigPath)
-		}
-
-		// Load the config from the chosen path
-		config, err := customManager.LoadFromPath(configPath)
-		if err != nil {
-			return nil, configPath, err
-		}
-
-		return config, configPath, nil
-	}
+	globalConfigPath := filepath.Join(globalConfigDir, ConfigFileName)
 
 	// Ensure the global config directory exists
 	if err := os.MkdirAll(globalConfigDir, 0755); err != nil {
@@ -232,7 +241,7 @@ func TestLoad(t *testing.T) {
 	}
 
 	// Test case 1: Neither config exists
-	_, _, err := testLoad(false)
+	_, _, err := testManager.Load(false)
 	if err == nil {
 		t.Error("Expected error when no config exists, got nil")
 	}
@@ -250,7 +259,7 @@ func TestLoad(t *testing.T) {
 	}
 
 	// Test case 2: Local config exists, prefer local
-	config, path, err := testLoad(false)
+	config, path, err := testManager.Load(false)
 	if err != nil {
 		t.Fatalf("Failed to load local config: %v", err)
 	}
@@ -276,7 +285,7 @@ func TestLoad(t *testing.T) {
 	}
 
 	// Test case 3: Both configs exist, prefer global
-	config, path, err = testLoad(true)
+	config, path, err = testManager.Load(true)
 	if err != nil {
 		t.Fatalf("Failed to load global config: %v", err)
 	}
@@ -290,7 +299,7 @@ func TestLoad(t *testing.T) {
 	}
 
 	// Test case 4: Both configs exist, prefer local
-	config, path, err = testLoad(false)
+	config, path, err = testManager.Load(false)
 	if err != nil {
 		t.Fatalf("Failed to load config: %v", err)
 	}
@@ -308,8 +317,8 @@ func TestLoad(t *testing.T) {
 		t.Fatalf("Failed to remove local config: %v", err)
 	}
 
-	// Test case 5: Only global config exists
-	config, path, err = testLoad(false)
+	// Test case 5: Only global config exists, no preference (should fallback to global)
+	config, path, err = testManager.Load(false)
 	if err != nil {
 		t.Fatalf("Failed to load global config as fallback: %v", err)
 	}
@@ -321,14 +330,49 @@ func TestLoad(t *testing.T) {
 	if !reflect.DeepEqual(config, globalConfig) {
 		t.Errorf("Loaded config does not match global config.\nExpected: %+v\nGot: %+v", globalConfig, config)
 	}
+
+	// Test case 6: Only global config exists, but explicitly prefer global
+	config, path, err = testManager.Load(true)
+	if err != nil {
+		t.Fatalf("Failed to load global config when preferred: %v", err)
+	}
+
+	if path != globalConfigPath {
+		t.Errorf("Expected path to be %s, got %s", globalConfigPath, path)
+	}
+
+	if !reflect.DeepEqual(config, globalConfig) {
+		t.Errorf("Loaded config does not match global config.\nExpected: %+v\nGot: %+v", globalConfig, config)
+	}
+
+	// Remove global config
+	if err := os.Remove(globalConfigPath); err != nil {
+		t.Fatalf("Failed to remove global config: %v", err)
+	}
+
+	// Test case 7: No configs exist with preference for global
+	_, _, err = testManager.Load(true)
+	if err == nil {
+		t.Error("Expected error when no config exists with global preference, got nil")
+	}
 }
 
 func TestSave(t *testing.T) {
 	// Create a temporary directory for testing
 	tempDir := t.TempDir()
-	localConfigPath := filepath.Join(tempDir, "local-config.json")
-	globalConfigDir := filepath.Join(tempDir, ".config")
-	globalConfigPath := filepath.Join(globalConfigDir, "global-config.json")
+
+	// Save original home directory and set mock HOME
+	originalHome := os.Getenv("HOME")
+	os.Setenv("HOME", tempDir)
+	defer os.Setenv("HOME", originalHome)
+
+	// Save original working directory and change to tempDir
+	currentDir, _ := os.Getwd()
+	os.Chdir(tempDir)
+	defer os.Chdir(currentDir)
+
+	// Use standard manager
+	testManager := NewManager()
 
 	// Create test config
 	testConfig := &Config{
@@ -337,64 +381,60 @@ func TestSave(t *testing.T) {
 		AvatarURL:  "https://example.com/avatar.png",
 	}
 
-	// Create a custom manager for this test
-	customManager := NewManager()
-
-	// Create testing helpers that simulate the Save function
-	testSaveLocal := func() (string, error) {
-		// Serialize and save
-		if err := customManager.SaveToPath(testConfig, localConfigPath); err != nil {
-			return localConfigPath, err
-		}
-		return localConfigPath, nil
-	}
-
-	testSaveGlobal := func() (string, error) {
-		// For global config, ensure directory exists
-		dirPath := filepath.Dir(globalConfigPath)
-		if err := os.MkdirAll(dirPath, 0755); err != nil {
-			return globalConfigPath, fmt.Errorf("failed to create config directory: %v", err)
-		}
-
-		// Serialize and save
-		if err := customManager.SaveToPath(testConfig, globalConfigPath); err != nil {
-			return globalConfigPath, err
-		}
-		return globalConfigPath, nil
-	}
-
 	// Test saving local config
-	localSavedPath, err := testSaveLocal()
+	localSavedPath, err := testManager.Save(testConfig, false)
 	if err != nil {
 		t.Fatalf("Failed to save local config: %v", err)
 	}
 
-	if localSavedPath != localConfigPath {
-		t.Errorf("Expected local save path to be %s, got %s", localConfigPath, localSavedPath)
+	// Get expected local path should be in current directory
+	expectedLocalPath := ConfigFileName
+	if localSavedPath != expectedLocalPath {
+		t.Errorf("Expected local save path to be %s, got %s", expectedLocalPath, localSavedPath)
 	}
 
 	// Verify local file was created
-	if _, err := os.Stat(localConfigPath); os.IsNotExist(err) {
-		t.Errorf("Local config was not created at %s", localConfigPath)
+	if _, err := os.Stat(localSavedPath); os.IsNotExist(err) {
+		t.Errorf("Local config was not created at %s", localSavedPath)
 	}
 
 	// Test saving global config
-	globalSavedPath, err := testSaveGlobal()
+	globalSavedPath, err := testManager.Save(testConfig, true)
 	if err != nil {
 		t.Fatalf("Failed to save global config: %v", err)
 	}
 
-	if globalSavedPath != globalConfigPath {
-		t.Errorf("Expected global save path to be %s, got %s", globalConfigPath, globalSavedPath)
+	// Get expected global path
+	expectedGlobalPath := filepath.Join(tempDir, ".config", ConfigFileName)
+	if globalSavedPath != expectedGlobalPath {
+		t.Errorf("Expected global save path to be %s, got %s", expectedGlobalPath, globalSavedPath)
 	}
 
 	// Verify global file was created
-	if _, err := os.Stat(globalConfigPath); os.IsNotExist(err) {
-		t.Errorf("Global config was not created at %s", globalConfigPath)
+	if _, err := os.Stat(globalSavedPath); os.IsNotExist(err) {
+		t.Errorf("Global config was not created at %s", globalSavedPath)
 	}
 
 	// Verify global directory was created
+	globalConfigDir := filepath.Dir(globalSavedPath)
 	if _, err := os.Stat(globalConfigDir); os.IsNotExist(err) {
 		t.Errorf("Global config directory was not created at %s", globalConfigDir)
+	}
+
+	// Verify config was written correctly
+	loadedConfig, err := testManager.LoadFromPath(localSavedPath)
+	if err != nil {
+		t.Fatalf("Failed to load saved local config: %v", err)
+	}
+	if !reflect.DeepEqual(loadedConfig, testConfig) {
+		t.Errorf("Loaded local config doesn't match original.\nExpected: %+v\nGot: %+v", testConfig, loadedConfig)
+	}
+
+	loadedConfig, err = testManager.LoadFromPath(globalSavedPath)
+	if err != nil {
+		t.Fatalf("Failed to load saved global config: %v", err)
+	}
+	if !reflect.DeepEqual(loadedConfig, testConfig) {
+		t.Errorf("Loaded global config doesn't match original.\nExpected: %+v\nGot: %+v", testConfig, loadedConfig)
 	}
 }

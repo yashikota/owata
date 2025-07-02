@@ -27,7 +27,7 @@ func TestInitCommand(t *testing.T) {
 	manager := config.NewManager()
 
 	// Run init command directly
-	path, err := manager.CreateTemplate(false)
+	path, _, err := manager.CreateTemplate(false)
 	if err != nil {
 		t.Fatalf("Failed to create config template: %v", err)
 	}
@@ -116,7 +116,7 @@ func TestGlobalConfig(t *testing.T) {
 	manager := config.NewManager()
 
 	// Create global config
-	path, err := manager.CreateTemplate(true)
+	path, _, err := manager.CreateTemplate(true)
 	if err != nil {
 		t.Fatalf("Failed to create global config: %v", err)
 	}
@@ -156,7 +156,7 @@ func TestGlobalConfig(t *testing.T) {
 	}
 }
 
-// TestNotification tests the notification sending functionality
+// TestNotification tests the notification sending functionality directly
 func TestNotification(t *testing.T) {
 	// Create test server
 	var requestReceived bool
@@ -194,6 +194,206 @@ func TestNotification(t *testing.T) {
 	// Check request was received
 	if !requestReceived {
 		t.Error("No request was received by test server")
+	}
+}
+
+// TestHandleNotify tests the handleNotify function specifically (integration test)
+func TestHandleNotify(t *testing.T) {
+	// Create test server
+	var requestReceived bool
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestReceived = true
+
+		// Check content type
+		contentType := r.Header.Get("Content-Type")
+		if contentType != "application/json" {
+			t.Errorf("Expected Content-Type application/json, got %s", contentType)
+		}
+
+		// Return success
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	// Setup test environment
+	tempDir := t.TempDir()
+	originalDir, _ := os.Getwd()
+	defer os.Chdir(originalDir)
+	os.Chdir(tempDir)
+
+	// Create a config manager
+	manager := config.NewManager()
+
+	// Create test cases
+	tests := []struct {
+		name         string
+		args         *github_com_yashikota_owata_cli.Args
+		setupLocal   bool
+		setupGlobal  bool
+		expectError  bool
+		expectGlobal bool
+	}{
+		{
+			name: "Command line webhook only",
+			args: &github_com_yashikota_owata_cli.Args{
+				Command:    github_com_yashikota_owata_cli.CommandNotify,
+				Message:    "Test message",
+				WebhookURL: server.URL,
+				Source:     "Test",
+				Global:     false,
+			},
+			setupLocal:  false,
+			setupGlobal: false,
+			expectError: false,
+		},
+		{
+			name: "Local config exists, no global flag",
+			args: &github_com_yashikota_owata_cli.Args{
+				Command: github_com_yashikota_owata_cli.CommandNotify,
+				Message: "Test message",
+				Source:  "Test",
+				Global:  false,
+			},
+			setupLocal:  true,
+			setupGlobal: false,
+			expectError: false,
+		},
+		{
+			name: "Global config exists, with global flag",
+			args: &github_com_yashikota_owata_cli.Args{
+				Command: github_com_yashikota_owata_cli.CommandNotify,
+				Message: "Test message",
+				Source:  "Test",
+				Global:  true,
+			},
+			setupLocal:   false,
+			setupGlobal:  true,
+			expectError:  false,
+			expectGlobal: true,
+		},
+		{
+			name: "Both configs exist, with global flag",
+			args: &github_com_yashikota_owata_cli.Args{
+				Command: github_com_yashikota_owata_cli.CommandNotify,
+				Message: "Test message",
+				Source:  "Test",
+				Global:  true,
+			},
+			setupLocal:   true,
+			setupGlobal:  true,
+			expectError:  false,
+			expectGlobal: true,
+		},
+		{
+			name: "Both configs exist, no global flag (prefer local)",
+			args: &github_com_yashikota_owata_cli.Args{
+				Command: github_com_yashikota_owata_cli.CommandNotify,
+				Message: "Test message",
+				Source:  "Test",
+				Global:  false,
+			},
+			setupLocal:  true,
+			setupGlobal: true,
+			expectError: false,
+		},
+		{
+			name: "No configs exist, no webhook URL",
+			args: &github_com_yashikota_owata_cli.Args{
+				Command: github_com_yashikota_owata_cli.CommandNotify,
+				Message: "Test message",
+				Source:  "Test",
+				Global:  false,
+			},
+			setupLocal:  false,
+			setupGlobal: false,
+			expectError: true,
+		},
+		{
+			name: "Global flag but no global config exists",
+			args: &github_com_yashikota_owata_cli.Args{
+				Command: github_com_yashikota_owata_cli.CommandNotify,
+				Message: "Test message",
+				Source:  "Test",
+				Global:  true,
+			},
+			setupLocal:  true,
+			setupGlobal: false,
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Reset request flag
+			requestReceived = false
+
+			// Clean any existing config files
+			os.Remove(config.ConfigFileName) // local
+			homeDir, _ := os.UserHomeDir()
+			os.Remove(filepath.Join(homeDir, ".config", config.ConfigFileName)) // global
+
+			// Setup local config if needed
+			if tt.setupLocal {
+				localConfig := &config.Config{
+					WebhookURL: server.URL,
+					Username:   "LocalUser",
+					AvatarURL:  "https://example.com/local-avatar.png",
+				}
+				_, err := manager.Save(localConfig, false)
+				if err != nil {
+					t.Fatalf("Failed to setup local config: %v", err)
+				}
+			}
+
+			// Setup global config if needed
+			if tt.setupGlobal {
+				globalConfig := &config.Config{
+					WebhookURL: server.URL,
+					Username:   "GlobalUser",
+					AvatarURL:  "https://example.com/global-avatar.png",
+				}
+				_, err := manager.Save(globalConfig, true)
+				if err != nil {
+					t.Fatalf("Failed to setup global config: %v", err)
+				}
+			}
+
+			// Redirect stdout to capture output
+			oldStdout := os.Stdout
+			r, w, _ := os.Pipe()
+			os.Stdout = w
+
+			// Run the test
+			err := handleNotify(manager, tt.args)
+
+			// Restore stdout
+			w.Close()
+			os.Stdout = oldStdout
+			var output bytes.Buffer
+			output.ReadFrom(r)
+			outputStr := output.String()
+
+			// Check results
+			if tt.expectError {
+				if err == nil {
+					t.Error("Expected error, but got nil")
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Expected no error, but got: %v", err)
+				}
+
+				// Check for success message
+				if !strings.Contains(outputStr, "Discord notification sent successfully") {
+					t.Error("Expected success message in output")
+				}
+
+				// Check that request was sent
+				if !requestReceived {
+					t.Error("No request was received by test server")
+				}
+			}
+		})
 	}
 }
 

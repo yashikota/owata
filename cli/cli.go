@@ -64,9 +64,9 @@ func Parse(args []string) (*Args, error) {
 
 	// If first argument is a flag, or all arguments are valid notification arguments,
 	// then it's a notification command
-	if args[0] == "-g" || args[0] == "--global" || 
-	   strings.HasPrefix(args[0], "--webhook=") || 
-	   strings.HasPrefix(args[0], "--source=") {
+	if args[0] == "-g" || args[0] == "--global" ||
+		strings.HasPrefix(args[0], "--webhook=") ||
+		strings.HasPrefix(args[0], "--source=") {
 		return parseNotifyArgs(args)
 	}
 
@@ -99,6 +99,9 @@ func parseNotifyArgs(args []string) (*Args, error) {
 			result.WebhookURL = strings.Trim(after, "'\"")
 		} else if arg == "-g" || arg == "--global" {
 			result.Global = true
+		} else if strings.HasPrefix(arg, "-") {
+			// Unknown flag
+			return nil, fmt.Errorf("unknown option for notify command: %s", arg)
 		} else {
 			// This must be the message
 			messageArgs = append(messageArgs, arg)
@@ -162,8 +165,10 @@ func PrintUsage() {
 	fmt.Println("  config -g, --global        Show current global configuration")
 	fmt.Println("  config --webhook=<url>     Set Discord webhook URL in local config")
 	fmt.Println("  config -g --webhook=<url>  Set Discord webhook URL in global config")
-	fmt.Println("  config --username=<name>      Set bot username")
-	fmt.Println("  config --avatar=<url>      Set bot avatar URL")
+	fmt.Println("  config --username=<name>      Set bot username in local config")
+	fmt.Println("  config -g --username=<name>   Set bot username in global config")
+	fmt.Println("  config --avatar=<url>      Set avatar URL in local config")
+	fmt.Println("  config -g --avatar=<url>   Set avatar URL in global config")
 	fmt.Println("")
 	fmt.Println("Arguments:")
 	fmt.Println("  message                    The notification message to send")

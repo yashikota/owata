@@ -158,19 +158,19 @@ func handleNotify(cm *config.Manager, args *cli.Args) error {
 
 	// Determine which config to use, respecting user preference but falling back if needed
 	preferGlobal := args.Global // true if -g flag was provided
-	
+
 	// First, try to load config based on user preference
 	cfg, configPath, err := cm.Load(preferGlobal)
 	if err == nil {
 		configToUse = cfg
 		useGlobal = strings.Contains(configPath, ".config") // Simple check if it's the global path
-		
+
 		// If we have a webhook URL in the config, use it (unless command line overrides it)
 		if configToUse.WebhookURL != "" && args.WebhookURL == "" {
 			webhookURL = configToUse.WebhookURL
 		}
 	}
-	
+
 	// If no webhook URL yet and not explicitly requesting global, try the other config as fallback
 	if webhookURL == "" && !preferGlobal && err != nil {
 		// Try global config as fallback
@@ -181,12 +181,12 @@ func handleNotify(cm *config.Manager, args *cli.Args) error {
 			webhookURL = fallbackCfg.WebhookURL
 		}
 	}
-	
+
 	// Command line webhook URL overrides config
 	if args.WebhookURL != "" {
 		webhookURL = args.WebhookURL
 	}
-	
+
 	// If still no webhook URL, return an error
 	if webhookURL == "" {
 		configType := "local"
@@ -196,14 +196,11 @@ func handleNotify(cm *config.Manager, args *cli.Args) error {
 		return fmt.Errorf("no webhook URL provided in command line or %s config", configType)
 	}
 
-	success, err := discord.SendNotification(webhookURL, args.Message, args.Source, configToUse)
-	if err != nil {
-		return err
+	sendErr := discord.SendNotification(webhookURL, args.Message, args.Source, configToUse)
+	if sendErr != nil {
+		return sendErr
 	}
-	
-	if success {
-		fmt.Println("✅ Discord notification sent successfully")
-	}
-	
+
+	fmt.Println("✅ Discord notification sent successfully")
 	return nil
 }

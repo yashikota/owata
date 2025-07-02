@@ -44,8 +44,7 @@ type Footer struct {
 }
 
 // SendNotification sends a notification to a Discord webhook
-// Returns true if notification was sent successfully
-func SendNotification(webhookURL, message, source string, cfg *config.Config) (bool, error) {
+func SendNotification(webhookURL, message, source string, cfg *config.Config) error {
 	// Set default values
 	username := config.DefaultUsername
 	var avatarURL string
@@ -98,22 +97,25 @@ func SendNotification(webhookURL, message, source string, cfg *config.Config) (b
 	// Marshal the webhook payload
 	jsonData, err := json.Marshal(webhook)
 	if err != nil {
-		return false, fmt.Errorf("error marshaling webhook data: %v", err)
+		return fmt.Errorf("error marshaling webhook data: %v", err)
 	}
 
 	// Send the webhook request
 	resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
-		return false, fmt.Errorf("error sending webhook: %v", err)
+		return fmt.Errorf("error sending webhook: %v", err)
 	}
 	defer resp.Body.Close()
 
 	// Check the response status
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		return true, nil
+		return nil
 	}
 
 	// Read response body for better error messages
-	body, _ := io.ReadAll(resp.Body)
-	return false, fmt.Errorf("discord webhook returned status: %d, body: %s", resp.StatusCode, string(body))
+	body, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		return fmt.Errorf("discord webhook returned status %d, but failed to read response body: %v", resp.StatusCode, readErr)
+	}
+	return fmt.Errorf("discord webhook returned status: %d, body: %s", resp.StatusCode, string(body))
 }
