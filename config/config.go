@@ -37,12 +37,24 @@ func (m *Manager) GetPath(global bool) string {
 	if global {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
-			fmt.Printf("Warning: Could not determine home directory: %v\n", err)
+			// Fall back to local config if we can't determine home directory
 			return m.configFileName
 		}
 		return filepath.Join(homeDir, ".config", m.configFileName)
 	}
 	return m.configFileName
+}
+
+// GetPathWithError returns the path to the config file and any error that occurred
+func (m *Manager) GetPathWithError(global bool) (string, error) {
+	if global {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return m.configFileName, fmt.Errorf("could not determine home directory: %w", err)
+		}
+		return filepath.Join(homeDir, ".config", m.configFileName), nil
+	}
+	return m.configFileName, nil
 }
 
 // Load loads configuration from local or global file based on preference
@@ -131,20 +143,21 @@ func (m *Manager) SaveToPath(config *Config, configPath string) error {
 }
 
 // CreateTemplate creates a configuration template file
-func (m *Manager) CreateTemplate(global bool) (string, error) {
+// Returns the config path, a boolean indicating if a new file was created, and any error
+func (m *Manager) CreateTemplate(global bool) (string, bool, error) {
 	configPath := m.GetPath(global)
 
 	// For global config, ensure directory exists
 	if global {
 		dirPath := filepath.Dir(configPath)
 		if err := os.MkdirAll(dirPath, 0755); err != nil {
-			return configPath, fmt.Errorf("failed to create config directory: %v", err)
+			return configPath, false, fmt.Errorf("failed to create config directory: %v", err)
 		}
 	}
 
 	// Check if config file already exists
 	if fileExists(configPath) {
-		return configPath, nil
+		return configPath, false, nil // File already exists, not created
 	}
 
 	// Create JSON template
@@ -156,51 +169,56 @@ func (m *Manager) CreateTemplate(global bool) (string, error) {
 
 	// Write template to file
 	if err := os.WriteFile(configPath, []byte(templateContent), 0644); err != nil {
-		return configPath, fmt.Errorf("failed to create config template: %v", err)
+		return configPath, false, fmt.Errorf("failed to create config template: %v", err)
 	}
 
-	return configPath, nil
+	return configPath, true, nil // New file was created
 }
 
 // DisplayConfig shows the current config at the specified path
-func (m *Manager) DisplayConfig(path string) error {
+// Returns the formatted config information and an error if any
+func (m *Manager) DisplayConfig(path string) (string, error) {
 	config, err := m.LoadFromPath(path)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	fmt.Printf("\n📋 Current configuration (%s):\n", path)
+	var output string
+	output += fmt.Sprintf("\n📋 Current configuration (%s):\n", path)
 
-	// Display webhook URL (with security masking)
+	// Format webhook URL (with security masking)
 	if config.WebhookURL != "" {
 		url := config.WebhookURL
 		if len(url) > 10 {
 			url = "..." + url[len(url)-10:]
 		}
-		fmt.Printf("  🔗 Webhook URL: %s\n", url)
+		output += fmt.Sprintf("  🔗 Webhook URL: %s\n", url)
 	} else {
-		fmt.Println("  🔗 Webhook URL: (not set)")
+		output += "  🔗 Webhook URL: (not set)\n"
 	}
 
-	// Display username
+	// Format username
 	if config.Username != "" {
-		fmt.Printf("  👤 Username: %s\n", config.Username)
+		output += fmt.Sprintf("  👤 Username: %s\n", config.Username)
 	} else {
-		fmt.Println("  👤 Username: (not set)")
+		output += "  👤 Username: (not set)\n"
 	}
 
-	// Display avatar URL
+	// Format avatar URL
 	if config.AvatarURL != "" {
-		fmt.Printf("  🖼️  Avatar URL: %s\n", config.AvatarURL)
+		output += fmt.Sprintf("  🖼️  Avatar URL: %s\n", config.AvatarURL)
 	} else {
-		fmt.Println("  🖼️  Avatar URL: (not set)")
+		output += "  🖼️  Avatar URL: (not set)\n"
 	}
 
-	return nil
+	return output, nil
 }
 
-// fileExists checks if a file exists
+// fileExists checks if a file exists and is accessible
 func fileExists(path string) bool {
-	_, err := os.Stat(path)
-	return err == nil
+	info, err := os.Stat(path)
+	if err != nil {
+		return !os.IsNotExist(err) // Return true for permission errors, etc.
+	}
+	return !info.IsDir() // Make sure it's not a directory
 }

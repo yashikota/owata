@@ -46,7 +46,7 @@ func Parse(args []string) (*Args, error) {
 		}
 	}
 
-	// Check for init command
+	// Check for explicit commands
 	if args[0] == "init" {
 		result := &Args{Command: CommandInit}
 
@@ -58,12 +58,19 @@ func Parse(args []string) (*Args, error) {
 		return result, nil
 	}
 
-	// Check for config command
 	if args[0] == "config" {
 		return parseConfigArgs(args[1:])
 	}
 
-	// Default is notification command
+	// If first argument is a flag, or all arguments are valid notification arguments,
+	// then it's a notification command
+	if args[0] == "-g" || args[0] == "--global" || 
+	   strings.HasPrefix(args[0], "--webhook=") || 
+	   strings.HasPrefix(args[0], "--source=") {
+		return parseNotifyArgs(args)
+	}
+
+	// Default is notification command with message as first arg
 	return parseNotifyArgs(args)
 }
 
@@ -75,23 +82,36 @@ func parseNotifyArgs(args []string) (*Args, error) {
 
 	result := &Args{
 		Command: CommandNotify,
-		Message: args[0],
 		Source:  "Unknown", // Default source
 	}
 
-	// Parse arguments after the message
-	for i := 1; i < len(args); i++ {
+	// First pass: process all flags and find the message
+	var messageArgs []string
+	var messageFound bool
+
+	for i := 0; i < len(args); i++ {
 		arg := args[i]
 
-		// Parse source flag
+		// Process known flags
 		if after, ok := strings.CutPrefix(arg, "--source="); ok {
 			result.Source = strings.Trim(after, "'\"")
 		} else if after, ok := strings.CutPrefix(arg, "--webhook="); ok {
 			result.WebhookURL = strings.Trim(after, "'\"")
+		} else if arg == "-g" || arg == "--global" {
+			result.Global = true
 		} else {
-			return nil, fmt.Errorf("unknown option: %s", arg)
+			// This must be the message
+			messageArgs = append(messageArgs, arg)
+			messageFound = true
 		}
 	}
+
+	if !messageFound {
+		return nil, fmt.Errorf("missing required message argument")
+	}
+
+	// Join all non-flag arguments as the message
+	result.Message = strings.Join(messageArgs, " ")
 
 	return result, nil
 }
@@ -113,18 +133,12 @@ func parseConfigArgs(args []string) (*Args, error) {
 
 		if arg == "-g" || arg == "--global" {
 			result.Global = true
-		} else if strings.HasPrefix(arg, "--webhook=") {
-			if after, ok := strings.CutPrefix(arg, "--webhook="); ok {
-				result.WebhookURL = strings.Trim(after, "'\"")
-			}
-		} else if strings.HasPrefix(arg, "--username=") {
-			if after, ok := strings.CutPrefix(arg, "--username="); ok {
-				result.Username = strings.Trim(after, "'\"")
-			}
-		} else if strings.HasPrefix(arg, "--avatar=") {
-			if after, ok := strings.CutPrefix(arg, "--avatar="); ok {
-				result.AvatarURL = strings.Trim(after, "'\"")
-			}
+		} else if after, ok := strings.CutPrefix(arg, "--webhook="); ok {
+			result.WebhookURL = strings.Trim(after, "'\"")
+		} else if after, ok := strings.CutPrefix(arg, "--username="); ok {
+			result.Username = strings.Trim(after, "'\"")
+		} else if after, ok := strings.CutPrefix(arg, "--avatar="); ok {
+			result.AvatarURL = strings.Trim(after, "'\"")
 		} else {
 			return nil, fmt.Errorf("unknown config parameter: %s", arg)
 		}
@@ -137,7 +151,7 @@ func parseConfigArgs(args []string) (*Args, error) {
 func PrintUsage() {
 	fmt.Printf("Owata v%s - Discord Webhook Notifier\n\n", Version)
 	fmt.Println("Usage:")
-	fmt.Println("  owata <message> [--webhook=<url>] [--source=<source>]")
+	fmt.Println("  owata <message> [--webhook=<url>] [--source=<source>] [-g|--global]")
 	fmt.Println("  owata init [-g|--global]")
 	fmt.Println("  owata config [-g|--global] [--webhook=<url>] [--username=<name>] [--avatar=<url>]")
 	fmt.Println("")
@@ -148,7 +162,7 @@ func PrintUsage() {
 	fmt.Println("  config -g, --global        Show current global configuration")
 	fmt.Println("  config --webhook=<url>     Set Discord webhook URL in local config")
 	fmt.Println("  config -g --webhook=<url>  Set Discord webhook URL in global config")
-	fmt.Println("  config --username=<name>   Set bot username")
+	fmt.Println("  config --username=<name>      Set bot username")
 	fmt.Println("  config --avatar=<url>      Set bot avatar URL")
 	fmt.Println("")
 	fmt.Println("Arguments:")
@@ -170,6 +184,7 @@ func PrintUsage() {
 	fmt.Println("  owata config -g --username='GlobalBot'")
 	fmt.Println("  owata 'Task completed!'    # Send notification (using config)")
 	fmt.Println("  owata 'Build finished' --webhook='https://...' --source='CI'")
+	fmt.Println("  owata 'Task completed!' -g # Send notification using global config")
 }
 
 // PrintVersion prints version information
