@@ -9,7 +9,7 @@ import (
 
 // Constants
 const (
-	ConfigFileName = "owata-config.json"
+	ConfigFileName  = "owata-config.json"
 	DefaultUsername = "Owata"
 )
 

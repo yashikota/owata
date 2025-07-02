@@ -20,13 +20,13 @@ const (
 
 // Args holds the parsed command line arguments
 type Args struct {
-	Command     CommandType
-	Message     string
-	WebhookURL  string
-	Source      string
-	Username    string
-	AvatarURL   string
-	Global      bool
+	Command    CommandType
+	Message    string
+	WebhookURL string
+	Source     string
+	Username   string
+	AvatarURL  string
+	Global     bool
 }
 
 // Parse parses command line arguments

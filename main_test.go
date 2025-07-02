@@ -82,7 +82,7 @@ func TestConfigCommand(t *testing.T) {
 	testConfig.AvatarURL = "https://example.com/avatar.png"
 
 	// Save updated config
-	path, err = manager.Save(testConfig, false)
+	_, err = manager.Save(testConfig, false)
 	if err != nil {
 		t.Fatalf("Failed to update config: %v", err)
 	}
@@ -218,8 +218,8 @@ func TestPrintUsage(t *testing.T) {
 
 	// Check for expected content
 	if !strings.Contains(output, "Owata") ||
-	   !strings.Contains(output, "Discord Webhook Notifier") ||
-	   !strings.Contains(output, "Usage:") {
+		!strings.Contains(output, "Discord Webhook Notifier") ||
+		!strings.Contains(output, "Usage:") {
 		t.Errorf("Help output missing expected content")
 	}
 }

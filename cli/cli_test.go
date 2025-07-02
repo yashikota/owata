@@ -10,10 +10,10 @@ import (
 
 func TestParse(t *testing.T) {
 	tests := []struct {
-		name          string
-		args          []string
-		expectedCmd   CommandType
-		expectedErr   bool
+		name           string
+		args           []string
+		expectedCmd    CommandType
+		expectedErr    bool
 		expectedGlobal bool
 	}{
 		{
@@ -42,33 +42,33 @@ func TestParse(t *testing.T) {
 			expectedCmd: CommandShowVersion,
 		},
 		{
-			name:        "Init command",
-			args:        []string{"init"},
-			expectedCmd: CommandInit,
+			name:           "Init command",
+			args:           []string{"init"},
+			expectedCmd:    CommandInit,
 			expectedGlobal: false,
 		},
 		{
-			name:        "Init command with global flag short",
-			args:        []string{"init", "-g"},
-			expectedCmd: CommandInit,
+			name:           "Init command with global flag short",
+			args:           []string{"init", "-g"},
+			expectedCmd:    CommandInit,
 			expectedGlobal: true,
 		},
 		{
-			name:        "Init command with global flag long",
-			args:        []string{"init", "--global"},
-			expectedCmd: CommandInit,
+			name:           "Init command with global flag long",
+			args:           []string{"init", "--global"},
+			expectedCmd:    CommandInit,
 			expectedGlobal: true,
 		},
 		{
-			name:        "Config command",
-			args:        []string{"config"},
-			expectedCmd: CommandConfig,
+			name:           "Config command",
+			args:           []string{"config"},
+			expectedCmd:    CommandConfig,
 			expectedGlobal: false,
 		},
 		{
-			name:        "Config command with global flag",
-			args:        []string{"config", "-g"},
-			expectedCmd: CommandConfig,
+			name:           "Config command with global flag",
+			args:           []string{"config", "-g"},
+			expectedCmd:    CommandConfig,
 			expectedGlobal: true,
 		},
 		{
@@ -122,10 +122,10 @@ func TestParse(t *testing.T) {
 
 func TestParseConfigArgs(t *testing.T) {
 	tests := []struct {
-		name           string
-		args           []string
-		expectedErr    bool
-		expectedGlobal bool
+		name            string
+		args            []string
+		expectedErr     bool
+		expectedGlobal  bool
 		expectedWebhook string
 		expectedUser    string
 		expectedAvatar  string
@@ -135,47 +135,47 @@ func TestParseConfigArgs(t *testing.T) {
 			args: []string{},
 		},
 		{
-			name: "Global flag short",
-			args: []string{"-g"},
+			name:           "Global flag short",
+			args:           []string{"-g"},
 			expectedGlobal: true,
 		},
 		{
-			name: "Global flag long",
-			args: []string{"--global"},
+			name:           "Global flag long",
+			args:           []string{"--global"},
 			expectedGlobal: true,
 		},
 		{
-			name: "Webhook URL",
-			args: []string{"--webhook=https://example.com"},
+			name:            "Webhook URL",
+			args:            []string{"--webhook=https://example.com"},
 			expectedWebhook: "https://example.com",
 		},
 		{
-			name: "Username",
-			args: []string{"--username=TestUser"},
+			name:         "Username",
+			args:         []string{"--username=TestUser"},
 			expectedUser: "TestUser",
 		},
 		{
-			name: "Avatar URL",
-			args: []string{"--avatar=https://example.com/avatar.png"},
+			name:           "Avatar URL",
+			args:           []string{"--avatar=https://example.com/avatar.png"},
 			expectedAvatar: "https://example.com/avatar.png",
 		},
 		{
-			name: "Multiple arguments",
-			args: []string{"-g", "--webhook=https://example.com", "--username=TestUser"},
-			expectedGlobal: true,
+			name:            "Multiple arguments",
+			args:            []string{"-g", "--webhook=https://example.com", "--username=TestUser"},
+			expectedGlobal:  true,
 			expectedWebhook: "https://example.com",
-			expectedUser: "TestUser",
+			expectedUser:    "TestUser",
 		},
 		{
-			name: "Unknown parameter",
-			args: []string{"--unknown=value"},
+			name:        "Unknown parameter",
+			args:        []string{"--unknown=value"},
 			expectedErr: true,
 		},
 		{
-			name: "Quoted values",
-			args: []string{"--webhook='https://example.com'", "--username=\"TestUser\""},
+			name:            "Quoted values",
+			args:            []string{"--webhook='https://example.com'", "--username=\"TestUser\""},
 			expectedWebhook: "https://example.com",
-			expectedUser: "TestUser",
+			expectedUser:    "TestUser",
 		},
 	}
 
@@ -226,45 +226,45 @@ func TestParseNotifyArgs(t *testing.T) {
 		expectedWebhook string
 	}{
 		{
-			name: "Empty args",
-			args: []string{},
+			name:        "Empty args",
+			args:        []string{},
 			expectedErr: true,
 		},
 		{
-			name: "Message only",
-			args: []string{"Hello world"},
+			name:            "Message only",
+			args:            []string{"Hello world"},
 			expectedMessage: "Hello world",
-			expectedSource: "Unknown", // Default source
+			expectedSource:  "Unknown", // Default source
 		},
 		{
-			name: "Message with webhook",
-			args: []string{"Hello world", "--webhook=https://example.com"},
+			name:            "Message with webhook",
+			args:            []string{"Hello world", "--webhook=https://example.com"},
 			expectedMessage: "Hello world",
-			expectedSource: "Unknown", // Default source
+			expectedSource:  "Unknown", // Default source
 			expectedWebhook: "https://example.com",
 		},
 		{
-			name: "Message with source",
-			args: []string{"Hello world", "--source=Test"},
+			name:            "Message with source",
+			args:            []string{"Hello world", "--source=Test"},
 			expectedMessage: "Hello world",
-			expectedSource: "Test",
+			expectedSource:  "Test",
 		},
 		{
-			name: "Message with webhook and source",
-			args: []string{"Hello world", "--webhook=https://example.com", "--source=Test"},
+			name:            "Message with webhook and source",
+			args:            []string{"Hello world", "--webhook=https://example.com", "--source=Test"},
 			expectedMessage: "Hello world",
-			expectedSource: "Test",
+			expectedSource:  "Test",
 			expectedWebhook: "https://example.com",
 		},
 		{
-			name: "Message with quoted source",
-			args: []string{"Hello world", "--source='Test Source'"},
+			name:            "Message with quoted source",
+			args:            []string{"Hello world", "--source='Test Source'"},
 			expectedMessage: "Hello world",
-			expectedSource: "Test Source",
+			expectedSource:  "Test Source",
 		},
 		{
-			name: "Message with unknown flag",
-			args: []string{"Hello world", "--unknown=value"},
+			name:        "Message with unknown flag",
+			args:        []string{"Hello world", "--unknown=value"},
 			expectedErr: true,
 		},
 	}
