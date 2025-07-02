@@ -99,10 +99,12 @@ func (m *Manager) Save(config *Config, global bool) (string, error) {
 		return "", fmt.Errorf("failed to get config path: %w", pathErr)
 	}
 
-	// Always ensure directory exists - works for both local and global paths
+	// Ensure directory exists - only needed for non-current directories
 	dirPath := filepath.Dir(configPath)
-	if err := os.MkdirAll(dirPath, 0755); err != nil {
-		return configPath, fmt.Errorf("failed to create config directory: %v", err)
+	if dirPath != "." {
+		if err := os.MkdirAll(dirPath, 0755); err != nil {
+			return configPath, fmt.Errorf("failed to create config directory: %v", err)
+		}
 	}
 
 	if err := m.SaveToPath(config, configPath); err != nil {
@@ -131,10 +133,12 @@ func (m *Manager) CreateTemplate(global bool) (string, bool, error) {
 		return "", false, fmt.Errorf("failed to get config path: %w", pathErr)
 	}
 
-	// Always ensure directory exists - works for both local and global paths
+	// Ensure directory exists - only needed for non-current directories
 	dirPath := filepath.Dir(configPath)
-	if err := os.MkdirAll(dirPath, 0755); err != nil {
-		return configPath, false, fmt.Errorf("failed to create config directory: %v", err)
+	if dirPath != "." {
+		if err := os.MkdirAll(dirPath, 0755); err != nil {
+			return configPath, false, fmt.Errorf("failed to create config directory: %v", err)
+		}
 	}
 
 	if fileExists(configPath) {

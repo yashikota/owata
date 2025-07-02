@@ -100,8 +100,20 @@ func SendNotification(webhookURL, message, source string, cfg *config.Config) er
 		return fmt.Errorf("error marshaling webhook data: %v", err)
 	}
 
+	// Create HTTP client with timeout to prevent hanging requests
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	
+	// Create request
+	req, err := http.NewRequest("POST", webhookURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return fmt.Errorf("error creating request: %v", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	
 	// Send the webhook request
-	resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(jsonData))
+	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("error sending webhook: %v", err)
 	}
