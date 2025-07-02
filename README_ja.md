@@ -139,8 +139,8 @@ owata --version     # バージョン情報を表示
 | `owata config -g, --global` | 現在のグローバル設定を表示 |
 | `owata config --webhook=<url>` | ローカルWebhook URLを設定 |
 | `owata config -g --webhook=<url>` | グローバルWebhook URLを設定 |
-| `owata config --username=<n>` | ローカルのボット名を設定 |
-| `owata config -g --username=<n>` | グローバルのボット名を設定 |
+| `owata config --username=<name>` | ローカルのボット名を設定 |
+| `owata config -g --username=<name>` | グローバルのボット名を設定 |
 | `owata config --avatar=<url>` | ローカルのアバターURLを設定 |
 | `owata config -g --avatar=<url>` | グローバルのアバターURLを設定 |
 | `owata --help` | ヘルプを表示 |
